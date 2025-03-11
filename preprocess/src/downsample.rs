@@ -1,5 +1,5 @@
 use crate::{
-    dataset::{create_tile_dataset, load_tile_dataset_if_exists, PreprocessContext},
+    dataset::{PreprocessContext, create_tile_dataset, load_tile_dataset_if_exists},
     gdal_extension::{CountingProgressCallback, ProgressCallback},
     result::{PreprocessError, PreprocessResult},
     stitch::stitch,
@@ -7,7 +7,7 @@ use crate::{
 use bevy_terrain::math::TileCoordinate;
 use gdal::raster::{Buffer, GdalType, RasterBand, ResampleAlg};
 use glam::IVec2;
-use itertools::{izip, Itertools};
+use itertools::{Itertools, izip};
 use num::NumCast;
 use rayon::prelude::*;
 use std::collections::HashSet;
@@ -17,7 +17,7 @@ pub fn downsample_and_stitch<T: Copy + GdalType + PartialEq + NumCast>(
     context: &PreprocessContext,
     progress_callback: Option<&ProgressCallback>,
 ) -> PreprocessResult<Vec<TileCoordinate>> {
-    let tiles_to_downsample = compute_tiles_to_downsample(&input_tiles);
+    let tiles_to_downsample = compute_tiles_to_downsample(input_tiles);
 
     let mut output_tiles = input_tiles.iter().copied().collect_vec();
     output_tiles.extend(tiles_to_downsample.iter().flatten());
@@ -43,12 +43,13 @@ fn downsample<T: Copy + GdalType + PartialEq + NumCast>(
         context.attachment.border_size as isize,
         context.attachment.border_size as isize,
     );
+
     let tile_size = (
         context.attachment.center_size() as usize,
         context.attachment.center_size() as usize,
     );
-    let child_size = (child_center_size as usize, child_center_size as usize);
 
+    let child_size = (child_center_size as usize, child_center_size as usize);
     input_tiles.par_iter().try_for_each(|&tile_coordinate| {
         let tile_dataset = create_tile_dataset::<T>(tile_coordinate, context)?;
 
