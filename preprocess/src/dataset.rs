@@ -140,14 +140,13 @@ impl PreprocessContext {
     ) -> PreprocessResult<(Dataset, Self)> {
         let mut src_datasets = src_path
             .iter()
-            .map(|src_path| {
+            .flat_map(|src_path| {
                 if src_path.is_dir() {
-                    iter_directory(&src_path).collect_vec()
+                    iter_directory(src_path).collect_vec()
                 } else {
                     vec![src_path.clone()]
                 }
             })
-            .flatten()
             .map(|path| Dataset::open(path).unwrap())
             .collect_vec();
 
