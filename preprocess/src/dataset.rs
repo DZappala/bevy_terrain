@@ -1,7 +1,12 @@
-use crate::cli::Cli;
-use crate::result::{PreprocessError, PreprocessResult};
-use bevy_terrain::math::TileCoordinate;
-use bevy_terrain::terrain_data::{AttachmentConfig, AttachmentLabel};
+use crate::{
+    cli::Cli,
+    result::{PreprocessError, PreprocessResult},
+};
+use bevy_terrain::{
+    math::TileCoordinate,
+    prelude::AttachmentFormat,
+    terrain_data::{AttachmentConfig, AttachmentLabel},
+};
 use gdal::{
     Dataset, DatasetOptions, DriverManager, GdalOpenFlags, GeoTransform,
     programs::raster::build_vrt,
@@ -120,13 +125,13 @@ impl PreprocessContext {
             overwrite,
         )
     }
+
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn initialize(
         terrain_path: PathBuf,
         lod_count: Option<u32>,
-
         attachment_label: AttachmentLabel,
         attachment: AttachmentConfig,
-
         src_path: Vec<PathBuf>,
         temp_dir: Option<PathBuf>,
         no_data: PreprocessNoData,
@@ -180,7 +185,7 @@ impl PreprocessContext {
             }
         };
 
-        let tile_dir = terrain_path.join(&String::from(&attachment_label));
+        let tile_dir = terrain_path.join(String::from(&attachment_label));
 
         let temp_dir = match temp_dir {
             None => tile_dir.join("temp"),
@@ -250,8 +255,8 @@ pub(crate) fn create_tile_dataset<T: Copy + GdalType>(
 ) -> PreprocessResult<Dataset> {
     let tile_path = tile_coordinate.path(&context.tile_dir);
 
-    fs::create_dir_all(&tile_path.parent().unwrap()).unwrap(); // make sure the parent directories do exist
-
+    // make sure the parent directories do exist
+    fs::create_dir_all(tile_path.parent().unwrap()).unwrap();
     create_empty_dataset::<T>(
         &tile_path,
         U64Vec2::splat(context.attachment.texture_size as u64),
