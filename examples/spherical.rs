@@ -81,7 +81,21 @@ fn initialize(
 
     commands.spawn_terrain(
         asset_server.load("terrains/earth/config.tc.ron"),
-        TerrainViewConfig::default(),
+        TerrainViewConfig {
+            tree_size: 16,
+            geometry_tile_count: 1000000,
+            refinement_count: 30,
+            grid_size: 16,
+            morph_range: 0.2,
+            blend_range: 0.2,
+            morph_distance: 32.0,
+            blend_distance: 8.0,
+            subdivision_tolerance: 0.1,
+            load_tolerance: 0.2,
+            precision_distance: 0.001,
+            view_lod: 10,
+            order: 0,
+        },
         CustomMaterial {
             gradient: gradient1.clone(),
             gradient_info: GradientInfo { mode: 2 },
@@ -151,16 +165,16 @@ fn initialize(
     //     view,
     // );
 
-    commands.spawn_terrain(
-        asset_server.load("/Volumes/ExternalSSD/tiles/hartenstein/config.tc.ron"),
-        TerrainViewConfig {
-            order: 1,
-            ..default()
-        },
-        CustomMaterial {
-            gradient: gradient2.clone(),
-            gradient_info: GradientInfo { mode: 2 },
-        },
-        view,
-    );
+    // commands.spawn_terrain(
+    //     asset_server.load("/Volumes/ExternalSSD/tiles/hartenstein/config.tc.ron"),
+    //     TerrainViewConfig {
+    //         order: 1,
+    //         ..default()
+    //     },
+    //     CustomMaterial {
+    //         gradient: gradient2.clone(),
+    //         gradient_info: GradientInfo { mode: 2 },
+    //     },
+    //     view,
+    // );
 }
