@@ -6,12 +6,12 @@
 struct Attachments {
     {0}: AttachmentConfig,
     {1}: AttachmentConfig,
-    {2}: AttachmentConfig,
-    {3}: AttachmentConfig,
-    {4}: AttachmentConfig,
-    {5}: AttachmentConfig,
-    {6}: AttachmentConfig,
-    {7}: AttachmentConfig,
+    // {2}: AttachmentConfig,
+    // {3}: AttachmentConfig,
+    // {4}: AttachmentConfig,
+    // {5}: AttachmentConfig,
+    // {6}: AttachmentConfig,
+    // {7}: AttachmentConfig,
 }
 
 // refine tiles bindings
