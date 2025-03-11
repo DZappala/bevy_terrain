@@ -75,9 +75,16 @@ pub fn debug_camera_controller(
     #[cfg(not(feature = "high_precision"))]
     let (mut transform, mut controller) = camera.single_mut();
 
-    keyboard
-        .just_pressed(KeyCode::KeyT)
-        .then(|| controller.enabled = !controller.enabled);
+    keyboard.just_pressed(KeyCode::KeyZ).then(|| {
+        controller.enabled = !controller.enabled;
+        info!(
+            "Controller, {:?}",
+            match controller.enabled {
+                true => "Enabled",
+                false => "Disabled",
+            }
+        );
+    });
 
     if !controller.enabled {
         return;

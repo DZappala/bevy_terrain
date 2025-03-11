@@ -16,6 +16,13 @@ pub(crate) fn debug_surface_approximation(
 ) {
     if input.just_pressed(KeyCode::KeyD) {
         *enable = !*enable;
+        info!(
+            "Surface approximation: {:?}",
+            match *enable {
+                true => "Enabled",
+                false => "Disabled",
+            }
+        );
     }
 
     if !*enable {
