@@ -11,6 +11,7 @@ use gdal_sys::{
     CPLErr, CPLErrorReset, CPLGetLastErrorMsg, CPLGetLastErrorNo, GDALAccess::GA_Update,
     GDALChunkAndWarpImage, GDALCreateWarpOptions, GDALDestroyWarpOperation, GDALDestroyWarpOptions,
     GDALDummyProgress, GDALFillNodata, GDALOpenShared, GDALResampleAlg, GDALSuggestedWarpOutput,
+    GDALWarpOperationH,
 };
 use glam::U64Vec2;
 use itertools::Itertools;
@@ -76,6 +77,7 @@ pub fn warp(
     // make sure, that these outlive the warp operation
     let band_count = context.rasterbands.len() as c_int;
     let mut bands = (1..=band_count).collect_vec();
+
     let mut src_no_data = src
         .rasterband(1)?
         .no_data_value()
@@ -91,7 +93,7 @@ pub fn warp(
     options.hDstDS = dst.c_dataset();
     // options.eResampleAlg = GDALResampleAlg::GRA_NearestNeighbour;
     options.eResampleAlg = GDALResampleAlg::GRA_Bilinear;
-    options.dfWarpMemoryLimit = 1024f64.powi(2) * 8.0; // Todo: figure out, why this affects reprojection at the poles
+    options.dfWarpMemoryLimit = 1024f64.powi(2) * 8.; // Todo: figure out, why this affects reprojection at the poles
 
     // for some reason this is not automatically recognized, so we have to set it manually
     options.eWorkingDataType = context.data_type as u32;
@@ -118,7 +120,7 @@ pub fn warp(
     };
 
     unsafe {
-        let operation = gdal_sys::GDALCreateWarpOperation(options);
+        let operation: GDALWarpOperationH = gdal_sys::GDALCreateWarpOperation(options);
         let rv = GDALChunkAndWarpImage(operation, 0, 0, width as c_int, height as c_int);
 
         options.panSrcBands = ptr::null_mut();
