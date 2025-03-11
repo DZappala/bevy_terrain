@@ -270,17 +270,18 @@ pub(crate) fn create_empty_dataset<T: Copy + GdalType>(
     let driver = DriverManager::get_driver_by_name("GTiff")?;
 
     // Todo: consider copying the photometric info
-
-    let options = RasterCreationOptions::from_iter(
-        [
-            "TILED=YES",
-            "BLOCKXSIZE=512",
-            "BLOCKYSIZE=512",
-            //  "SPARSE_OK=TRUE",
-            "INTERLEAVE=PIXEL", // Todo: benchmark pixel vs band
-        ]
-        .into_iter(),
-    );
+    let options = RasterCreationOptions::from_iter([
+        "TILED=YES",
+        "BLOCKXSIZE=512",
+        "BLOCKYSIZE=512",
+        //  "SPARSE_OK=TRUE",
+        "INTERLEAVE=PIXEL", // TODO: benchmark pixel vs band
+        match context.attachment.format {
+            AttachmentFormat::RU16 | AttachmentFormat::RF32 => "PHOTOMETRIC=MINISBLACK",
+            AttachmentFormat::RgbaU8 => "PHOTOMETRIC=RGB",
+            _ => "",
+        },
+    ]);
 
     let mut dst = driver.create_with_band_type_with_options::<T, _>(
         dst_path,
