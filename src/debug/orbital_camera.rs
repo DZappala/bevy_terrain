@@ -4,7 +4,7 @@ use crate::{
 };
 use bevy::{
     color::palettes::basic,
-    input::{mouse::AccumulatedMouseMotion, ButtonInput},
+    input::{ButtonInput, mouse::AccumulatedMouseMotion},
     math::{DQuat, DVec2, DVec3, Mat4, Vec2},
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
@@ -112,7 +112,7 @@ pub fn orbital_camera_controller(
     };
 
     keyboard
-        .just_pressed(KeyCode::KeyR)
+        .just_pressed(KeyCode::KeyX)
         .then(|| controller.enabled = !controller.enabled);
 
     if !controller.enabled {

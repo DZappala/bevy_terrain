@@ -106,124 +106,160 @@ pub fn extract_debug(mut debug: ResMut<DebugTerrain>, extracted_debug: Extract<R
     *debug = extracted_debug.clone();
 }
 
-pub fn toggle_debug(input: Res<ButtonInput<KeyCode>>, mut debug: ResMut<DebugTerrain>) {
+pub fn toggle_debug(input: Res<ButtonInput<KeyCode>>, mut debug_terrain: ResMut<DebugTerrain>) {
     if input.just_pressed(KeyCode::KeyW) {
-        debug.wireframe = !debug.wireframe;
-        println!(
+        debug_terrain.wireframe = !debug_terrain.wireframe;
+        info!(
             "Toggled the wireframe view {}.",
-            if debug.wireframe { "on" } else { "off" }
+            if debug_terrain.wireframe { "on" } else { "off" }
         )
     }
-    if input.just_pressed(KeyCode::KeyL) {
-        debug.show_data_lod = !debug.show_data_lod;
-        println!(
+    if input.just_pressed(KeyCode::KeyE) {
+        debug_terrain.show_data_lod = !debug_terrain.show_data_lod;
+        info!(
             "Toggled the terrain data LOD view {}.",
-            if debug.show_data_lod { "on" } else { "off" }
+            if debug_terrain.show_data_lod {
+                "on"
+            } else {
+                "off"
+            }
+        )
+    }
+    if input.just_pressed(KeyCode::KeyR) {
+        debug_terrain.show_geometry_lod = !debug_terrain.show_geometry_lod;
+        info!(
+            "Toggled the terrain geometry LOD view {}.",
+            if debug_terrain.show_geometry_lod {
+                "on"
+            } else {
+                "off"
+            }
+        )
+    }
+    if input.just_pressed(KeyCode::KeyT) {
+        debug_terrain.show_tile_tree = !debug_terrain.show_tile_tree;
+        info!(
+            "Toggled the tile tree LOD view {}.",
+            if debug_terrain.show_tile_tree {
+                "on"
+            } else {
+                "off"
+            }
         )
     }
     if input.just_pressed(KeyCode::KeyY) {
-        debug.show_geometry_lod = !debug.show_geometry_lod;
-        println!(
-            "Toggled the terrain geometry LOD view {}.",
-            if debug.show_geometry_lod { "on" } else { "off" }
-        )
-    }
-    if input.just_pressed(KeyCode::KeyQ) {
-        debug.show_tile_tree = !debug.show_tile_tree;
-        println!(
-            "Toggled the tile tree LOD view {}.",
-            if debug.show_tile_tree { "on" } else { "off" }
-        )
-    }
-    if input.just_pressed(KeyCode::KeyP) {
-        debug.show_pixels = !debug.show_pixels;
-        println!(
+        debug_terrain.show_pixels = !debug_terrain.show_pixels;
+        info!(
             "Toggled the pixel view {}.",
-            if debug.show_pixels { "on" } else { "off" }
+            if debug_terrain.show_pixels {
+                "on"
+            } else {
+                "off"
+            }
         )
     }
     if input.just_pressed(KeyCode::KeyU) {
-        debug.show_uv = !debug.show_uv;
-        println!(
+        debug_terrain.show_uv = !debug_terrain.show_uv;
+        info!(
             "Toggled the uv view {}.",
-            if debug.show_uv { "on" } else { "off" }
+            if debug_terrain.show_uv { "on" } else { "off" }
         )
     }
-    if input.just_pressed(KeyCode::KeyB) {
-        debug.show_normals = !debug.show_normals;
-        println!(
+    if input.just_pressed(KeyCode::KeyI) {
+        debug_terrain.show_normals = !debug_terrain.show_normals;
+        info!(
             "Toggled the normals view {}.",
-            if debug.show_normals { "on" } else { "off" }
+            if debug_terrain.show_normals {
+                "on"
+            } else {
+                "off"
+            }
         )
     }
-    if input.just_pressed(KeyCode::KeyM) {
-        debug.morph = !debug.morph;
-        println!(
-            "Toggled morphing {}.",
-            if debug.morph { "on" } else { "off" }
+    if input.just_pressed(KeyCode::KeyO) {
+        debug_terrain.morph = !debug_terrain.morph;
+        info!(
+            "Morphing: {}.",
+            if debug_terrain.morph { "on" } else { "off" }
         )
     }
-    if input.just_pressed(KeyCode::KeyK) {
-        debug.blend = !debug.blend;
-        println!(
-            "Toggled blending {}.",
-            if debug.blend { "on" } else { "off" }
+    if input.just_pressed(KeyCode::KeyP) {
+        debug_terrain.blend = !debug_terrain.blend;
+        info!(
+            "Blending: {}.",
+            if debug_terrain.blend { "on" } else { "off" }
         )
     }
-    if input.just_pressed(KeyCode::KeyZ) {
-        debug.tile_tree_lod = !debug.tile_tree_lod;
-        println!(
-            "Toggled tile tree lod {}.",
-            if debug.tile_tree_lod { "on" } else { "off" }
+    if input.just_pressed(KeyCode::BracketLeft) {
+        debug_terrain.tile_tree_lod = !debug_terrain.tile_tree_lod;
+        info!(
+            "Tile tree lod: {}.",
+            if debug_terrain.tile_tree_lod {
+                "on"
+            } else {
+                "off"
+            }
         )
     }
-    if input.just_pressed(KeyCode::KeyS) {
-        debug.lighting = !debug.lighting;
-        println!(
-            "Toggled the lighting {}.",
-            if debug.lighting { "on" } else { "off" }
+    if input.just_pressed(KeyCode::BracketRight) {
+        debug_terrain.lighting = !debug_terrain.lighting;
+        info!(
+            "Lighting: {}.",
+            if debug_terrain.lighting { "on" } else { "off" }
         )
     }
-    if input.just_pressed(KeyCode::KeyG) {
-        debug.sample_grad = !debug.sample_grad;
-        println!(
-            "Toggled the texture sampling using gradients {}.",
-            if debug.sample_grad { "on" } else { "off" }
+    if input.just_pressed(KeyCode::Backslash) {
+        debug_terrain.sample_grad = !debug_terrain.sample_grad;
+        info!(
+            "Texture sampling using gradients: {}.",
+            if debug_terrain.sample_grad {
+                "on"
+            } else {
+                "off"
+            }
         )
     }
-    if input.just_pressed(KeyCode::KeyH) {
-        debug.high_precision = !debug.high_precision;
-        println!(
+    if input.just_pressed(KeyCode::Semicolon) {
+        debug_terrain.high_precision = !debug_terrain.high_precision;
+        info!(
             "Toggled high precision coordinates {}.",
-            if debug.high_precision { "on" } else { "off" }
+            if debug_terrain.high_precision {
+                "on"
+            } else {
+                "off"
+            }
         )
     }
     if input.just_pressed(KeyCode::KeyF) {
-        debug.freeze = !debug.freeze;
-        println!(
+        debug_terrain.freeze = !debug_terrain.freeze;
+        info!(
             "{} the view frustum.",
-            if debug.freeze { "Froze" } else { "Unfroze" }
+            if debug_terrain.freeze {
+                "Froze"
+            } else {
+                "Unfroze"
+            }
         )
     }
     if input.just_pressed(KeyCode::Digit1) {
-        debug.test1 = !debug.test1;
-        println!(
-            "Toggled the debug flag 1 {}.",
-            if debug.test1 { "on" } else { "off" }
+        debug_terrain.test1 = !debug_terrain.test1;
+        info!(
+            "Debug flag 1: {}.",
+            if debug_terrain.test1 { "on" } else { "off" }
         )
     }
     if input.just_pressed(KeyCode::Digit2) {
-        debug.test2 = !debug.test2;
-        println!(
-            "Toggled the debug flag 2 {}.",
-            if debug.test2 { "on" } else { "off" }
+        debug_terrain.test2 = !debug_terrain.test2;
+        info!(
+            "Debug flag 2: {}.",
+            if debug_terrain.test2 { "on" } else { "off" }
         )
     }
     if input.just_pressed(KeyCode::Digit3) {
-        debug.test3 = !debug.test3;
-        println!(
-            "Toggled the debug flag 3 {}.",
-            if debug.test3 { "on" } else { "off" }
+        debug_terrain.test3 = !debug_terrain.test3;
+        info!(
+            "Debug flag 3: {}.",
+            if debug_terrain.test3 { "on" } else { "off" }
         )
     }
 }
@@ -235,9 +271,11 @@ pub fn update_terrain_parameter(
     for mut tile_atlas in tile_atlases.iter_mut() {
         if input.pressed(KeyCode::ShiftLeft) && input.just_pressed(KeyCode::Equal) {
             tile_atlas.height_scale += 0.1;
+            info!("Heightscale: {}", tile_atlas.height_scale);
         }
         if input.just_pressed(KeyCode::Minus) {
             tile_atlas.height_scale -= 0.1;
+            info!("Heightscale: {}", tile_atlas.height_scale);
         }
     }
 }
@@ -249,43 +287,31 @@ pub fn update_view_parameter(
     for tile_tree in tile_trees.values_mut() {
         let scale = tile_tree.shape.scale();
 
-        if input.just_pressed(KeyCode::KeyN) {
+        if input.just_pressed(KeyCode::KeyV) {
             tile_tree.blend_distance -= 0.25 * scale;
-            println!(
-                "Decreased the blend distance to {}.",
-                tile_tree.blend_distance / scale
-            );
+            info!("Blend distance: {}.", tile_tree.blend_distance / scale);
         }
-        if input.just_pressed(KeyCode::KeyE) {
+        if input.just_pressed(KeyCode::KeyB) {
             tile_tree.blend_distance += 0.25 * scale;
-            println!(
-                "Increased the blend distance to {}.",
-                tile_tree.blend_distance / scale
-            );
+            info!("Blend distance: {}.", tile_tree.blend_distance / scale);
         }
 
-        if input.just_pressed(KeyCode::KeyI) {
+        if input.just_pressed(KeyCode::KeyN) {
             tile_tree.morph_distance -= 0.25 * scale;
-            println!(
-                "Decreased the morph distance to {}.",
-                tile_tree.morph_distance / scale
-            );
+            info!("Morph distance: {}.", tile_tree.morph_distance / scale);
         }
-        if input.just_pressed(KeyCode::KeyO) {
+        if input.just_pressed(KeyCode::KeyM) {
             tile_tree.morph_distance += 0.25 * scale;
-            println!(
-                "Increased the morph distance to {}.",
-                tile_tree.morph_distance / scale
-            );
+            info!("Morth distance: {}.", tile_tree.morph_distance / scale);
         }
 
-        if input.just_pressed(KeyCode::KeyX) && tile_tree.grid_size > 2 {
+        if input.just_pressed(KeyCode::KeyG) && tile_tree.grid_size > 2 {
             tile_tree.grid_size -= 2;
-            println!("Decreased the grid size to {}.", tile_tree.grid_size);
+            info!("Grid size: {}.", tile_tree.grid_size);
         }
-        if input.just_pressed(KeyCode::KeyJ) {
+        if input.just_pressed(KeyCode::KeyH) {
             tile_tree.grid_size += 2;
-            println!("Increased the grid size to {}.", tile_tree.grid_size);
+            info!("Grid size {}.", tile_tree.grid_size);
         }
     }
 }
