@@ -1,14 +1,12 @@
-use crate::dataset::update_tile_dataset;
 use crate::{
-    dataset::PreprocessContext,
-    gdal_extension::{fill_no_data, CountingProgressCallback, ProgressCallback},
+    dataset::{PreprocessContext, update_tile_dataset},
+    gdal_extension::{CountingProgressCallback, ProgressCallback, fill_no_data},
     result::{PreprocessError, PreprocessResult},
 };
 use bevy_terrain::math::TileCoordinate;
-use gdal::raster::Buffer;
-use gdal::raster::{GdalDataType, GdalType};
-use itertools::{izip, Itertools};
-use rayon::prelude::*;
+use gdal::raster::{Buffer, GdalDataType, GdalType};
+use itertools::{Itertools, izip};
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 trait BitMask {
     fn apply(&self, mask: u8) -> Self;
@@ -66,7 +64,8 @@ fn create_mask_and_fill_no_data_gen<T: GdalType + BitMask>(
             let mut band_data: Buffer<f32> = band.read_band_as()?;
 
             for (&mask, value) in mask.data().iter().zip(band_data.data_mut()) {
-                *value = value.apply(mask); // all valid pixels have LSB == 1, all invalid pixels have LSB == 0
+                // all valid pixels have LSB == 1, all invalid pixels have LSB == 0
+                *value = value.apply(mask);
             }
 
             band.write(
