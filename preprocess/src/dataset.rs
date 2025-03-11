@@ -77,10 +77,8 @@ pub struct PreprocessContext {
     pub(crate) fill_radius: f32,
     pub(crate) create_mask: bool,
     pub(crate) overwrite: bool,
-
     pub(crate) min_height: f32,
     pub(crate) max_height: f32,
-
     pub(crate) terrain_path: PathBuf,
     pub(crate) lod_count: Option<u32>,
     pub(crate) attachment_label: AttachmentLabel,
@@ -205,7 +203,6 @@ impl PreprocessContext {
                 min_height: f32::MAX,
                 max_height: f32::MIN,
                 create_mask,
-
                 attachment_label,
                 attachment,
                 terrain_path,
