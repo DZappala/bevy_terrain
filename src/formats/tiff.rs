@@ -1,5 +1,5 @@
 use bevy::{
-    asset::{io::Reader, AssetLoader, LoadContext},
+    asset::{AssetLoader, LoadContext, io::Reader},
     image::ImageLoaderError,
     prelude::*,
     render::{
@@ -8,8 +8,11 @@ use bevy::{
     },
 };
 use bytemuck::cast_slice;
-use std::io::Cursor;
-use tiff::decoder::{Decoder, DecodingResult};
+use std::{any::Any, io::Cursor, panic::catch_unwind};
+use tiff::{
+    ColorType,
+    decoder::{Decoder, DecodingResult},
+};
 
 #[derive(Default)]
 pub struct TiffLoader;
@@ -21,7 +24,7 @@ impl AssetLoader for TiffLoader {
         &self,
         reader: &mut dyn Reader,
         _settings: &Self::Settings,
-        _load_context: &mut LoadContext<'_>,
+        ctx: &mut LoadContext<'_>,
     ) -> Result<Image, Self::Error> {
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).await?;
@@ -30,30 +33,68 @@ impl AssetLoader for TiffLoader {
 
         let (width, height) = decoder.dimensions().unwrap();
 
-        let data = match decoder.read_image().unwrap() {
-            DecodingResult::U8(data) => cast_slice(&data).to_vec(),
-            DecodingResult::U16(data) => cast_slice(&data).to_vec(),
-            DecodingResult::U32(data) => cast_slice(&data).to_vec(),
-            DecodingResult::U64(data) => cast_slice(&data).to_vec(),
-            DecodingResult::F32(data) => cast_slice(&data).to_vec(),
-            DecodingResult::F64(data) => cast_slice(&data).to_vec(),
-            DecodingResult::I8(data) => cast_slice(&data).to_vec(),
-            DecodingResult::I16(data) => cast_slice(&data).to_vec(),
-            DecodingResult::I32(data) => cast_slice(&data).to_vec(),
-            DecodingResult::I64(data) => cast_slice(&data).to_vec(),
+        let decoding_result = decoder.read_image().unwrap();
+        let (data, dtype_str) = match &decoding_result {
+            DecodingResult::U8(data) => (cast_slice(data).to_vec(), "U8"),
+            DecodingResult::U16(data) => (cast_slice(data).to_vec(), "U16"),
+            DecodingResult::U32(data) => (cast_slice(data).to_vec(), "U32"),
+            DecodingResult::U64(data) => (cast_slice(data).to_vec(), "U64"),
+            DecodingResult::F32(data) => (cast_slice(data).to_vec(), "F32"),
+            DecodingResult::F64(data) => (cast_slice(data).to_vec(), "F64"),
+            DecodingResult::I8(data) => (cast_slice(data).to_vec(), "I8"),
+            DecodingResult::I16(data) => (cast_slice(data).to_vec(), "I16"),
+            DecodingResult::I32(data) => (cast_slice(data).to_vec(), "I32"),
+            DecodingResult::I64(data) => (cast_slice(data).to_vec(), "I64"),
         };
 
-        Ok(Image::new(
-            Extent3d {
-                width,
-                height,
-                depth_or_array_layers: 1,
+        let path_ref = ctx.asset_path();
+        let color_type = decoder.colortype().unwrap_or_else(|err| {
+            panic!(
+                "Header of .tif does not define a colortype or dtype\nPath: {path_ref:?}\nDetails: {err:?}"
+            )
+        });
+
+        let tex_fmt = match color_type {
+            ColorType::Gray(_) | ColorType::GrayA(_) => match decoding_result {
+                DecodingResult::U8(_) => TextureFormat::R8Unorm,
+                DecodingResult::U16(_) => TextureFormat::R16Unorm,
+                DecodingResult::U32(_) => TextureFormat::R32Uint,
+                DecodingResult::F32(_) => TextureFormat::R32Float,
+                _ => todo!(
+                    "Unimplemented colortype-datatype combination. Valid data types for \"Gray\" are UInt8 (a.k.a. byte), UInt16, and UInt32\nPath: {path_ref:?}\nColortype: {color_type:?}\n{dtype_str}"
+                ),
             },
-            TextureDimension::D2,
-            data,
-            TextureFormat::R16Unorm,
-            RenderAssetUsages::MAIN_WORLD,
-        ))
+            ColorType::RGB(_) | ColorType::RGBA(_) => match decoding_result {
+                DecodingResult::U8(_) => TextureFormat::Rgba8Unorm,
+                _ => todo!(
+                    "Unimplemented colortype-datatype combination. Valid data types for \"RGB and RGBA\" is UInt8 (a.k.a. byte).\nPath: {path_ref:?}\nColortype: {color_type:?}\nDatatype: {dtype_str:?}"
+                ),
+            },
+            _ => todo!(
+                ".tif colortype or dtype not yet implemented.\nPath: {path_ref:?}\nColortype:{color_type:?}\nDatatype: {dtype_str:?}",
+            ),
+        };
+
+        let img_result: Result<Image, Box<dyn Any + Send>> = catch_unwind(|| -> Image {
+            Image::new(
+                Extent3d {
+                    width,
+                    height,
+                    depth_or_array_layers: 1,
+                },
+                TextureDimension::D2,
+                data,
+                tex_fmt,
+                RenderAssetUsages::MAIN_WORLD,
+            )
+        });
+
+        match img_result {
+            Ok(x) => Ok(x),
+            Err(_) => panic!(
+                "Failed to convert Image:\n\tpath: {path_ref:?}\n\tcolortype {color_type:?}\n\tdtype {dtype_str:?}"
+            ),
+        }
     }
 
     fn extensions(&self) -> &[&str] {
