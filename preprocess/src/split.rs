@@ -1,16 +1,23 @@
 use crate::{
-    dataset::{create_tile_dataset, FaceInfo, PreprocessContext},
+    dataset::{FaceInfo, PreprocessContext, create_tile_dataset},
     gdal_extension::{CountingProgressCallback, ProgressCallback, SharedReadOnlyDataset},
     result::{PreprocessError, PreprocessResult},
     stitch::stitch,
 };
 use bevy_terrain::math::TileCoordinate;
-use gdal::raster::{Buffer, GdalType};
+use gdal::{
+    Metadata,
+    raster::{Buffer, GdalType},
+};
 use glam::IVec2;
-use itertools::{iproduct, Itertools};
+use itertools::{Itertools, iproduct};
 use num::NumCast;
 use rayon::prelude::*;
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    io::Write,
+    sync::{Arc, Mutex},
+};
 
 pub fn split_and_stitch<T: Copy + GdalType + PartialEq + NumCast>(
     faces: HashMap<u32, FaceInfo>,
@@ -49,6 +56,7 @@ fn split<T: Copy + GdalType + PartialEq + NumCast>(
     context: &PreprocessContext,
     progress_callback: &CountingProgressCallback,
 ) -> PreprocessResult<Vec<TileCoordinate>> {
+    // let stdout = Arc::new(Mutex::new(std::io::stdout()));
     input_tiles
         .par_iter()
         .map(|&tile_coordinate| {
@@ -106,6 +114,45 @@ fn split<T: Copy + GdalType + PartialEq + NumCast>(
                 for (band_index, mut copy_buffer) in copy_buffers.into_iter().enumerate() {
                     let mut tile_raster = tile_dataset.rasterband(band_index + 1)?;
 
+                    // let stdout = Arc::clone(&stdout);
+                    // let Ok(_) = stdout.lock().unwrap().write_all(
+                    //     &format!(
+                    //         "tile_offset.x: {:?}\n\
+                    //     tile_offset.y: {:?}\n\
+                    //     copy_size.x: {:?}\n\
+                    //     copy_size.y: {:?}\n\
+                    //     RasterXSize: {:?}\n\
+                    //     RasterYSize: {:?}\n\
+                    //     DataType: {:?}\n\
+                    //     ColorType: {:?}\n\
+                    //     Meta: {:?}\n\
+                    //     Size: {:?}\n\
+                    //     Unit: {:?}\n\
+                    //     Scale: {:?}\n\
+                    //     Offset: {:?}\n\
+                    //     BlockSize: {:?}\n\
+                    //     Description: {:?}",
+                    //         tile_offset.x,
+                    //         tile_offset.y,
+                    //         copy_size.x,
+                    //         copy_size.y,
+                    //         tile_raster.x_size(),
+                    //         tile_raster.y_size(),
+                    //         tile_raster.band_type(),
+                    //         tile_raster.color_interpretation(),
+                    //         tile_raster.metadata().collect_vec(),
+                    //         tile_raster.size(),
+                    //         tile_raster.unit(),
+                    //         tile_raster.scale(),
+                    //         tile_raster.offset(),
+                    //         tile_raster.block_size(),
+                    //         tile_raster.description()
+                    //     )
+                    //     .into_bytes(),
+                    // ) else {
+                    //     continue;
+                    // };
+
                     tile_raster.write::<T>(
                         (tile_offset.x as isize, tile_offset.y as isize),
                         (copy_size.x as usize, copy_size.y as usize),
@@ -116,7 +163,7 @@ fn split<T: Copy + GdalType + PartialEq + NumCast>(
 
             progress_callback.increment();
 
-            Ok::<Option<TileCoordinate>, PreprocessError>(has_data.then(|| tile_coordinate))
+            Ok::<Option<TileCoordinate>, PreprocessError>(has_data.then_some(tile_coordinate))
         })
         .filter_map(Result::transpose)
         .collect::<PreprocessResult<Vec<TileCoordinate>>>()
