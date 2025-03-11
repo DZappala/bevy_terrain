@@ -42,13 +42,13 @@ pub fn reproject<T: Copy + GdalType>(
                 &dst_path,
                 transform.size,
                 Some(transform.geo_transform),
-                &context,
+                context,
             )?;
 
             warp(
                 &src_dataset,
                 &dst_dataset,
-                &context,
+                context,
                 &mut transform.transformer,
                 transform.progress_callback.as_deref(),
             )?;
@@ -100,7 +100,7 @@ pub fn compute_transforms<'a>(
         };
 
         // flip y axis
-        geo_transform[3] = geo_transform[3] + geo_transform[5] * size.y as f64;
+        geo_transform[3] += geo_transform[5] * size.y as f64;
         geo_transform[5] = -geo_transform[5];
 
         let uv_start = DVec2::from(geo_transform.apply(0.0, 0.0)).max(DVec2::ZERO);
