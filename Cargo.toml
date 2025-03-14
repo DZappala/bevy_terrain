@@ -24,7 +24,7 @@ bevy_common_assets = { version = "0.12.0", features = ["ron"] }
 big_space = { version = "0.9.1", optional = true }
 tiff = "0.9.1"
 bytemuck = "1.22"
-ndarray = "0.16.1"
+ndarray = "0.15"
 itertools = "0.14.0"
 bitflags = "2.9.0"
 anyhow = "1.0.97"
