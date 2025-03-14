@@ -1,11 +1,11 @@
 use crate::{
-    dataset::{load_tile_dataset_if_exists, update_tile_dataset, PreprocessContext},
+    dataset::{PreprocessContext, load_tile_dataset_if_exists, update_tile_dataset},
     gdal_extension::CountingProgressCallback,
     result::{PreprocessError, PreprocessResult},
 };
 use bevy_terrain::math::{FaceRotation, TileCoordinate};
-use gdal::raster::{Buffer, GdalType};
 use gdal::Dataset;
+use gdal::raster::{Buffer, GdalType};
 use itertools::izip;
 use ndarray::Axis;
 use num::NumCast;

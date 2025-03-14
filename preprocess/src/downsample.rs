@@ -4,9 +4,9 @@ use crate::{
     result::{PreprocessError, PreprocessResult},
     stitch::stitch,
 };
+use bevy_math::IVec2;
 use bevy_terrain::math::TileCoordinate;
 use gdal::raster::{Buffer, GdalType, RasterBand, ResampleAlg};
-use glam::IVec2;
 use itertools::{Itertools, izip};
 use num::NumCast;
 use rayon::prelude::*;

@@ -2,6 +2,7 @@ use crate::{
     dataset::PreprocessContext,
     result::{PreprocessError, PreprocessResult},
 };
+use bevy_math::U64Vec2;
 use gag::Gag;
 use gdal::{
     Dataset, GeoTransform,
@@ -13,7 +14,6 @@ use gdal_sys::{
     GDALDummyProgress, GDALFillNodata, GDALOpenShared, GDALResampleAlg, GDALSuggestedWarpOutput,
     GDALWarpOperationH,
 };
-use glam::U64Vec2;
 use itertools::Itertools;
 use std::{
     ffi::{CStr, CString, c_char, c_double, c_int, c_void},

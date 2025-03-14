@@ -4,9 +4,9 @@ use crate::{
     result::PreprocessResult,
     transformers::CustomTransformer,
 };
+use bevy_math::{DVec2, IVec2, U64Vec2};
 use bevy_terrain::prelude::AttachmentLabel;
 use gdal::{Dataset, GeoTransform, GeoTransformEx, raster::GdalType};
-use glam::{DVec2, IVec2, U64Vec2};
 use itertools::Itertools;
 use std::collections::HashMap;
 

@@ -15,13 +15,13 @@ fn main() {
         }
     }
 
-    let _args = Cli {
+    let args = Cli {
         src_path: vec!["assets/source_data/gebco.tif".into()],
         terrain_path: "assets/terrains/earth".into(),
         temp_path: None,
         overwrite: false,
         no_data: PreprocessNoData::Source,
-        data_type: PreprocessDataType::DataType(GdalDataType::Float32),
+        data_type: PreprocessDataType::DataType(GdalDataType::UInt16),
         fill_radius: 16.0,
         create_mask: true,
         lod_count: None,
@@ -29,10 +29,10 @@ fn main() {
         texture_size: 512,
         border_size: 2,
         mip_level_count: 1,
-        format: AttachmentFormat::RF32,
+        format: AttachmentFormat::RU16,
     };
 
-    let args = Cli {
+    let _args = Cli {
         src_path: vec!["assets/source_data/GRAYNEW6.tif".into()],
         terrain_path: "assets/terrains/earth".into(),
         temp_path: None,

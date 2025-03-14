@@ -2,13 +2,13 @@ use crate::{
     gdal_extension::{GDALCustomTransformer, GDALTransformerInfo, Transformer},
     result::{PreprocessError, PreprocessResult},
 };
+use bevy_math::{DVec2, DVec3};
 use bevy_terrain::math::Coordinate;
 use gdal::{Dataset, GeoTransform, GeoTransformEx, errors::GdalError, spatial_ref::SpatialRef};
 use gdal_sys::{
     GDALCreateReprojectionTransformerEx, GDALDestroyReprojectionTransformer,
     GDALReprojectionTransform,
 };
-use glam::{DVec2, DVec3};
 use itertools::izip;
 use std::ffi::c_void;
 use std::ptr;
@@ -82,7 +82,7 @@ impl Transformer for ReprojectionTransformer {
         self.counter += 1;
         //dbg!(self.counter);
 
-        //dbg!(thread::current().id());
+        // dbg!(thread::current().id());
 
         let return_value = unsafe {
             GDALReprojectionTransform(

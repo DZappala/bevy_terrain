@@ -2,6 +2,7 @@ use crate::{
     cli::Cli,
     result::{PreprocessError, PreprocessResult},
 };
+use bevy_math::{IVec2, U64Vec2};
 use bevy_terrain::{
     math::TileCoordinate,
     prelude::AttachmentFormat,
@@ -12,7 +13,6 @@ use gdal::{
     programs::raster::build_vrt,
     raster::{ColorInterpretation, GdalDataType, GdalType, RasterCreationOptions},
 };
-use glam::{IVec2, U64Vec2};
 use itertools::Itertools;
 use std::{
     fs,
