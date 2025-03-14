@@ -2,21 +2,21 @@ use crate::{
     formats::TiffLoader,
     prelude::TerrainConfig,
     render::{
+        GpuTerrain, GpuTerrainView,
         terrain_pass::{
-            extract_terrain_phases, prepare_terrain_depth_textures, DepthCopyPipeline, TerrainItem,
-            TerrainPass,
+            DepthCopyPipeline, TerrainItem, TerrainPass, extract_terrain_phases,
+            prepare_terrain_depth_textures,
         },
         tiling_prepass::{
-            queue_tiling_prepass, TerrainTilingPrepassPipelines, TilingPrepass, TilingPrepassItem,
+            TerrainTilingPrepassPipelines, TilingPrepass, TilingPrepassItem, queue_tiling_prepass,
         },
-        GpuTerrain, GpuTerrainView,
     },
-    shaders::{load_terrain_shaders, InternalShaders},
+    shaders::{InternalShaders, load_terrain_shaders},
     terrain::TerrainComponents,
     terrain_data::{
+        GpuTileAtlas, TileAtlas, TileTree,
         attachment::AttachmentLabel,
         tile_loader::{finish_loading, start_loading},
-        GpuTileAtlas, TileAtlas, TileTree,
     },
     terrain_view::TerrainViewComponents,
 };
@@ -24,12 +24,12 @@ use bevy::{
     core_pipeline::core_3d::graph::{Core3d, Node3d},
     prelude::*,
     render::{
+        Render, RenderApp, RenderSet,
         graph::CameraDriverLabel,
         render_graph::{RenderGraph, RenderGraphApp, ViewNodeRunner},
-        render_phase::{sort_phase_system, DrawFunctions, ViewSortedRenderPhases},
+        render_phase::{DrawFunctions, ViewSortedRenderPhases, sort_phase_system},
         render_resource::*,
-        view::{check_visibility, VisibilitySystems},
-        Render, RenderApp, RenderSet,
+        view::{VisibilitySystems, check_visibility},
     },
 };
 use bevy_common_assets::ron::RonAssetPlugin;
