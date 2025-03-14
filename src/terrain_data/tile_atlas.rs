@@ -228,12 +228,12 @@ impl TileAtlas {
     }
 
     pub fn update_terrain_buffer(
-        mut tile_atlases: Query<(&mut TileAtlas, &GlobalTransform)>,
+        mut tile_atlases: Query<(&TileAtlas, &GlobalTransform)>,
         mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
     ) {
         for (tile_atlas, global_transform) in &mut tile_atlases {
             let terrain_buffer = buffers.get_mut(&tile_atlas.terrain_buffer).unwrap();
-            terrain_buffer.set_data(TerrainUniform::new(&tile_atlas, global_transform));
+            terrain_buffer.set_data(TerrainUniform::new(tile_atlas, global_transform));
         }
     }
 
