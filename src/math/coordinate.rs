@@ -1,6 +1,6 @@
 use crate::math::{
-    FaceRotation, TerrainShape, BLOCK_SIZE, FACE_MATRICES, INVERSE_FACE_MATRICES,
-    NEIGHBOURING_FACES, NEIGHBOUR_OFFSETS, SIGMA,
+    BLOCK_SIZE, FACE_MATRICES, FaceRotation, INVERSE_FACE_MATRICES, NEIGHBOUR_OFFSETS,
+    NEIGHBOURING_FACES, SIGMA, TerrainShape,
 };
 use bevy::{
     math::{DVec2, DVec3},
