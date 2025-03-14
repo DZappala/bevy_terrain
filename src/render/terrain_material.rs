@@ -1,14 +1,14 @@
 use crate::{
     debug::DebugTerrain,
     render::{
+        GpuTerrainView,
         terrain_bind_group::SetTerrainBindGroup,
-        terrain_pass::{TerrainItem, TERRAIN_DEPTH_FORMAT},
+        terrain_pass::{TERRAIN_DEPTH_FORMAT, TerrainItem},
         terrain_view_bind_group::{DrawTerrainCommand, SetTerrainViewBindGroup},
         tiling_prepass::TerrainTilingPrepassPipelines,
-        GpuTerrainView,
     },
     shaders::{DEFAULT_FRAGMENT_SHADER, DEFAULT_VERTEX_SHADER},
-    spawn::{spawn_terrains, TerrainsToSpawn},
+    spawn::{TerrainsToSpawn, spawn_terrains},
     terrain::TerrainComponents,
     terrain_data::GpuTileAtlas,
     terrain_view::TerrainViewComponents,
@@ -21,7 +21,8 @@ use bevy::{
     },
     prelude::*,
     render::{
-        render_asset::{prepare_assets, RenderAssetPlugin, RenderAssets},
+        Extract, Render, RenderApp, RenderSet,
+        render_asset::{RenderAssetPlugin, RenderAssets, prepare_assets},
         render_phase::{
             AddRenderCommand, DrawFunctions, PhaseItemExtraIndex, SetItemPipeline,
             ViewSortedRenderPhases,
@@ -30,7 +31,6 @@ use bevy::{
         renderer::RenderDevice,
         sync_world::MainEntity,
         texture::GpuImage,
-        Extract, Render, RenderApp, RenderSet,
     },
 };
 use derive_more::derive::From;
@@ -201,7 +201,6 @@ impl TerrainPipelineFlags {
 
     pub fn shader_defs(&self) -> Vec<ShaderDefVal> {
         let mut shader_defs = Vec::new();
-
         if self.contains(TerrainPipelineFlags::SPHERICAL) {
             shader_defs.push("SPHERICAL".into());
         }
