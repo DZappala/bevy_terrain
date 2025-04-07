@@ -24,18 +24,11 @@ impl Material for CustomMaterial {
 }
 
 fn main() {
+    // std::thread::sleep(std::time::Duration::from_secs(1));
+
     App::new()
         .add_plugins((
-            DefaultPlugins
-                // .set(WindowPlugin {
-                //     primary_window: Some(Window {
-                //         mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
-                //         ..default()
-                //     }),
-                //     ..default()
-                // })
-                .build()
-                .disable::<TransformPlugin>(),
+            DefaultPlugins.build().disable::<TransformPlugin>(),
             TerrainPlugin,
             TerrainMaterialPlugin::<CustomMaterial>::default(),
             TerrainDebugPlugin, // enable debug settings and controls
@@ -98,11 +91,11 @@ fn initialize(
         },
         CustomMaterial {
             gradient: gradient1.clone(),
-            gradient_info: GradientInfo { mode: 2 },
+            gradient_info: GradientInfo { mode: 1 },
         },
         view,
     );
-
+    //
     // commands.spawn_terrain(
     //     asset_server.load("terrains/los/config.tc.ron"),
     //     TerrainViewConfig {
@@ -117,20 +110,7 @@ fn initialize(
     // );
     //
     // commands.spawn_terrain(
-    //     asset_server.load("/Volumes/ExternalSSD/tiles/swiss/config.tc.ron"), //"terrains/swiss/config.tc.ron"),
-    //     TerrainViewConfig {
-    //         order: 1,
-    //         ..default()
-    //     },
-    //     CustomMaterial {
-    //         gradient: gradient1.clone(),
-    //         gradient_info: GradientInfo { mode: 1 },
-    //     },
-    //     view,
-    // );
-    //
-    // commands.spawn_terrain(
-    //     asset_server.load("/Volumes/ExternalSSD/tiles/sas/config.tc.ron"),
+    //     asset_server.load("terrains/npd/config.tc.ron"),
     //     TerrainViewConfig {
     //         order: 2,
     //         ..default()
@@ -141,19 +121,9 @@ fn initialize(
     //     },
     //     view,
     // );
-
-    // commands.spawn_terrain(
-    //     asset_server.load("/Volumes/ExternalSSD/tiles/earth/config.tc.ron"),
-    //     TerrainViewConfig::default(),
-    //     CustomMaterial {
-    //         gradient: gradient1.clone(),
-    //         gradient_info: GradientInfo { mode: 1 },
-    //     },
-    //     view,
-    // );
     //
     // commands.spawn_terrain(
-    //     asset_server.load("/Volumes/ExternalSSD/tiles/scope/config.tc.ron"),
+    //     asset_server.load("terrains/utsira/config.tc.ron"),
     //     TerrainViewConfig {
     //         order: 1,
     //         ..default()
@@ -164,17 +134,45 @@ fn initialize(
     //     },
     //     view,
     // );
-
+    //
     // commands.spawn_terrain(
-    //     asset_server.load("/Volumes/ExternalSSD/tiles/hartenstein/config.tc.ron"),
+    //     asset_server.load("terrains/sas/config.tc.ron"),
+    //     TerrainViewConfig {
+    //         order: 2,
+    //         ..default()
+    //     },
+    //     CustomMaterial {
+    //         gradient: gradient2.clone(),
+    //         gradient_info: GradientInfo { mode: 3 },
+    //     },
+    //     view,
+    // );
+    //
+    //
+    //
+    // commands.spawn_terrain(
+    //     asset_server.load("terrains/swiss/config.tc.ron"),
     //     TerrainViewConfig {
     //         order: 1,
     //         ..default()
     //     },
     //     CustomMaterial {
-    //         gradient: gradient2.clone(),
-    //         gradient_info: GradientInfo { mode: 2 },
+    //         gradient: gradient1.clone(),
+    //         gradient_info: GradientInfo { mode: 1 },
     //     },
     //     view,
     // );
+    //
+    // // commands.spawn_terrain(
+    // //     asset_server.load("/Volumes/ExternalSSD/tiles/hartenstein/config.tc.ron"),
+    // //     TerrainViewConfig {
+    // //         order: 1,
+    // //         ..default()
+    // //     },
+    // //     CustomMaterial {
+    // //         gradient: gradient2.clone(),
+    // //         gradient_info: GradientInfo { mode: 2 },
+    // //     },
+    // //     view,
+    // // );
 }

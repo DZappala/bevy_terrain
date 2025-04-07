@@ -2,7 +2,7 @@
 
 struct Terrain {
     lod_count: u32,
-    scale: f32,
+    scale: vec3<f32>,
     min_height: f32,
     max_height: f32,
     height_scale: f32,
@@ -29,6 +29,7 @@ struct TerrainView {
     coordinates: array<ViewCoordinate, 6>,
     height_scale: f32,
     world_position: vec3<f32>,
+    half_spaces: array<vec4<f32>, 6>,
 #ifdef HIGH_PRECISION
     surface_approximation: array<SurfaceApproximation, 6>, // must be last field of this struct
 #endif
@@ -38,6 +39,14 @@ struct TileCoordinate {
     face: u32,
     lod: u32,
     xy: vec2<u32>,
+}
+
+struct GeometryTile {
+    face: u32,
+    lod: u32,
+    xy: vec2<u32>,
+    view_distances: vec4<f32>,
+    morph_ratios: vec4<f32>,
 }
 
 struct Coordinate {
@@ -64,9 +73,10 @@ struct ViewCoordinate {
 
 struct PrepassState {
     tile_count: u32,
-    counter: i32,
-    child_index: atomic<i32>,
-    final_index: atomic<i32>,
+//    counter: i32,
+    parent_index: atomic<u32>,
+    child_index: atomic<u32>,
+    final_index: atomic<u32>,
 }
 
 struct Blend {
@@ -107,16 +117,18 @@ struct AttachmentConfig {
     center_size: f32,
     scale: f32,
     offset: f32,
+    mask: u32,
+    paddinga: u32,
+    paddingb: u32,
+    paddingc: u32,
 }
 
 
 struct IndirectBuffer {
-    workgroup_count: vec3<u32>,
-}
-
-struct CullingData {
-    half_spaces: array<vec4<f32>, 6>,
-    world_position: vec3<f32>,
+    vertex_count: u32,
+    instance_count: u32,
+    first_vertex: u32,
+    first_instance: u32,
 }
 
 struct TangentSpace {

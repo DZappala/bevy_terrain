@@ -1,12 +1,8 @@
 //! Contains a debug resource and systems controlling it to visualize different internal
 //! data of the plugin.
 use crate::{
-    debug::{
-        approximation_debug::debug_surface_approximation, camera::debug_camera_controller,
-        orbital_camera::orbital_camera_controller,
-    },
-    prelude::TileAtlas,
-    terrain_data::TileTree,
+    debug::{debug_camera_controller, debug_surface_approximation, orbital_camera_controller},
+    terrain_data::{TileAtlas, TileTree},
     terrain_view::TerrainViewComponents,
 };
 
@@ -15,12 +11,18 @@ use bevy::{
     render::{Extract, RenderApp, render_resource::*},
     window::PrimaryWindow,
 };
+
 mod approximation_debug;
 mod camera;
-
 mod orbital_camera;
 
-pub use crate::debug::{camera::DebugCameraController, orbital_camera::OrbitalCameraController};
+pub(crate) use self::{approximation_debug::*, camera::*, orbital_camera::*};
+pub use self::{camera::DebugCameraController, orbital_camera::OrbitalCameraController};
+
+#[cfg(feature = "metal_capture")]
+mod metal_capture;
+#[cfg(feature = "metal_capture")]
+pub use self::metal_capture::MetalCapturePlugin;
 
 #[derive(Asset, AsBindGroup, TypePath, Clone, Default)]
 pub struct DebugTerrainMaterial {}
@@ -32,7 +34,8 @@ pub struct TerrainDebugPlugin;
 
 impl Plugin for TerrainDebugPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<DebugTerrain>()
+        app.add_plugins(MetalCapturePlugin)
+            .init_resource::<DebugTerrain>()
             .init_resource::<LoadingImages>()
             .add_systems(Startup, (debug_lighting, debug_window))
             .add_systems(
@@ -285,7 +288,7 @@ pub fn update_view_parameter(
     mut tile_trees: ResMut<TerrainViewComponents<TileTree>>,
 ) {
     for tile_tree in tile_trees.values_mut() {
-        let scale = tile_tree.shape.scale();
+        let scale = tile_tree.shape.scale_f32();
 
         if input.just_pressed(KeyCode::KeyV) {
             tile_tree.blend_distance -= 0.25 * scale;
@@ -331,7 +334,7 @@ pub(crate) fn debug_lighting(mut commands: Commands) {
 }
 
 pub fn debug_window(mut window: Query<&mut Window, With<PrimaryWindow>>) {
-    let mut window = window.single_mut();
+    let mut window = window.single_mut().unwrap();
     window.cursor_options.visible = true; // false;
 }
 

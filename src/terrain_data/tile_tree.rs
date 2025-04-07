@@ -1,9 +1,8 @@
 use crate::{
-    big_space::GridCell,
     math::{Coordinate, TerrainShape, TileCoordinate},
-    render::terrain_view_bind_group::{TerrainViewUniform, TileTreeUniform},
+    render::{TerrainViewUniform, TileTreeUniform},
     terrain::TerrainConfig,
-    terrain_data::{TileAtlas, INVALID_ATLAS_INDEX, INVALID_LOD},
+    terrain_data::{INVALID_ATLAS_INDEX, INVALID_LOD, TileAtlas},
     terrain_view::{TerrainViewComponents, TerrainViewConfig},
 };
 use bevy::{
@@ -12,11 +11,13 @@ use bevy::{
     prelude::*,
     render::{
         gpu_readback::{Readback, ReadbackComplete},
+        primitives::Frustum,
         render_resource::{BufferUsages, ShaderType},
         storage::ShaderStorageBuffer,
     },
 };
-use itertools::{iproduct, Itertools};
+use big_space::prelude::*;
+use itertools::{Itertools, iproduct};
 use ndarray::Array4;
 use std::{cmp::Ordering, iter};
 
@@ -109,7 +110,6 @@ pub struct TileTree {
     pub(crate) lod_count: u32,
     pub(crate) shape: TerrainShape,
     pub(crate) geometry_tile_count: u32,
-    pub(crate) refinement_count: u32,
     pub(crate) grid_size: u32,
     pub(crate) morph_range: f32,
     pub(crate) blend_range: f32,
@@ -123,6 +123,7 @@ pub struct TileTree {
     pub(crate) view_local_position: DVec3,
     pub(crate) view_world_position: Vec3,
     pub(crate) view_coordinates: [Coordinate; 6],
+    pub(crate) half_spaces: [Vec4; 6],
     #[cfg(feature = "high_precision")]
     pub(crate) surface_approximation: [crate::math::SurfaceApproximation; 6],
     pub(crate) approximate_height: f32,
@@ -142,7 +143,7 @@ impl TileTree {
         commands: &mut Commands,
         buffers: &mut Assets<ShaderStorageBuffer>, // Todo: solve this dependency with a component hook in the future
     ) -> Self {
-        let scale = config.shape.scale();
+        let scale = config.shape.scale_f32();
 
         let data = Array4::default((
             config.shape.face_count() as usize,
@@ -176,7 +177,6 @@ impl TileTree {
             lod_count: config.lod_count,
             shape: config.shape,
             geometry_tile_count: view_config.geometry_tile_count,
-            refinement_count: view_config.refinement_count,
             grid_size: view_config.grid_size,
             morph_distance: view_config.morph_distance * scale,
             blend_distance: view_config.blend_distance * scale,
@@ -201,6 +201,7 @@ impl TileTree {
             released_tiles: default(),
             requested_tiles: default(),
             view_coordinates: default(),
+            half_spaces: default(),
             #[cfg(feature = "high_precision")]
             surface_approximation: default(),
             approximate_height: 0.0,
@@ -320,17 +321,30 @@ impl TileTree {
     /// Traverses all tile_trees and updates the tile states,
     /// while selecting newly requested and released tiles.
     pub(crate) fn compute_requests(
+        camera: Query<&Camera>,
         mut tile_trees: ResMut<TerrainViewComponents<TileTree>>,
-        #[cfg(feature = "high_precision")] grids: crate::big_space::Grids,
+        #[cfg(feature = "high_precision")] grids: Grids,
         #[cfg(feature = "high_precision")] views: Query<(&Transform, &GridCell)>,
         #[cfg(not(feature = "high_precision"))] view_transforms: Query<&Transform>,
     ) {
         for (&(_, view), tile_tree) in tile_trees.iter_mut() {
+            let camera = camera.get(view).unwrap();
             let grid = grids.parent_grid(view).unwrap();
             let (transform, cell) = views.get(view).unwrap();
 
+            // Todo: transform should be global transform?
+
+            let clip_from_view = camera.clip_from_view();
+            let world_from_view = transform.compute_matrix();
+            let clip_from_world = clip_from_view * world_from_view.inverse();
+
+            let half_spaces = Frustum::from_clip_from_world(&clip_from_world)
+                .half_spaces
+                .map(|space| space.normal_d());
+
             tile_tree.view_local_position = grid.grid_position_double(cell, transform);
             tile_tree.view_world_position = transform.translation;
+            tile_tree.half_spaces = half_spaces;
             tile_tree.update();
         }
     }
@@ -384,7 +398,7 @@ impl TileTree {
         terrain_view: Query<&TerrainViewKey>,
         mut tile_trees: ResMut<TerrainViewComponents<TileTree>>,
     ) {
-        let TerrainViewKey(terrain_view) = terrain_view.get(trigger.entity()).unwrap();
+        let TerrainViewKey(terrain_view) = terrain_view.get(trigger.target()).unwrap();
         let tile_tree = tile_trees.get_mut(terrain_view).unwrap();
         tile_tree.approximate_height = trigger.event().to_shader_type();
     }

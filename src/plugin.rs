@@ -1,6 +1,6 @@
 use crate::{
     formats::TiffLoader,
-    prelude::TerrainConfig,
+    preprocess::{MipPipelines, MipPrepass},
     render::{
         GpuTerrain, GpuTerrainView,
         terrain_pass::{
@@ -12,10 +12,17 @@ use crate::{
         },
     },
     shaders::{InternalShaders, load_terrain_shaders},
+    shaders::{InternalShaders, load_terrain_shaders},
     terrain::TerrainComponents,
+    terrain::{TerrainComponents, TerrainConfig},
     terrain_data::{
-        GpuTileAtlas, TileAtlas, TileTree,
+        AttachmentLabel, GpuTileAtlas, TileAtlas, TileTree, finish_loading, start_loading,
+    },
+    terrain_data::{
+        DepthCopyPipeline, GpuTerrain, GpuTerrainView, GpuTileAtlas, TerrainItem, TerrainPass,
+        TerrainTilingPrepassPipelines, TileAtlas, TileTree, TilingPrepass, TilingPrepassItem,
         attachment::AttachmentLabel,
+        extract_terrain_phases, prepare_terrain_depth_textures, queue_tiling_prepass,
         tile_loader::{finish_loading, start_loading},
     },
     terrain_view::TerrainViewComponents,
@@ -33,6 +40,7 @@ use bevy::{
     },
 };
 use bevy_common_assets::ron::RonAssetPlugin;
+use big_space::prelude::*;
 
 #[derive(Resource)]
 pub struct TerrainSettings {
@@ -71,7 +79,7 @@ pub struct TerrainPlugin;
 impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {
         #[cfg(feature = "high_precision")]
-        app.add_plugins(crate::big_space::BigSpacePlugin::default());
+        app.add_plugins(BigSpacePlugin::default());
 
         app.add_plugins(RonAssetPlugin::<TerrainConfig>::new(&["tc.ron"]))
             .init_asset::<TerrainConfig>()
@@ -82,7 +90,8 @@ impl Plugin for TerrainPlugin {
             .add_systems(
                 PostUpdate,
                 (
-                    check_visibility::<With<TileAtlas>>.in_set(VisibilitySystems::CheckVisibility),
+                    // Todo: enable visibility checking again
+                    // check_visibility::<With<TileAtlas>>.in_set(VisibilitySystems::CheckVisibility),
                     (
                         TileTree::compute_requests,
                         finish_loading,
@@ -99,6 +108,7 @@ impl Plugin for TerrainPlugin {
                 ),
             );
         app.sub_app_mut(RenderApp)
+            .init_resource::<SpecializedComputePipelines<MipPipelines>>()
             .init_resource::<SpecializedComputePipelines<TerrainTilingPrepassPipelines>>()
             .init_resource::<TerrainComponents<GpuTileAtlas>>()
             .init_resource::<TerrainComponents<GpuTerrain>>()
@@ -129,8 +139,8 @@ impl Plugin for TerrainPlugin {
                         .in_set(RenderSet::Prepare),
                     sort_phase_system::<TerrainItem>.in_set(RenderSet::PhaseSort),
                     prepare_terrain_depth_textures.in_set(RenderSet::PrepareResources),
-                    queue_tiling_prepass.in_set(RenderSet::Queue),
-                    GpuTileAtlas::cleanup
+                    (queue_tiling_prepass, GpuTileAtlas::queue).in_set(RenderSet::Queue),
+                    GpuTileAtlas::_cleanup
                         .before(World::clear_entities)
                         .in_set(RenderSet::Cleanup),
                 ),
@@ -145,7 +155,9 @@ impl Plugin for TerrainPlugin {
             .sub_app_mut(RenderApp)
             .world_mut()
             .resource_mut::<RenderGraph>();
+        render_graph.add_node(MipPrepass, MipPrepass);
         render_graph.add_node(TilingPrepass, TilingPrepass);
+        render_graph.add_node_edge(MipPrepass, TilingPrepass);
         render_graph.add_node_edge(TilingPrepass, CameraDriverLabel);
     }
 
@@ -160,6 +172,7 @@ impl Plugin for TerrainPlugin {
 
         app.sub_app_mut(RenderApp)
             .init_resource::<TerrainTilingPrepassPipelines>()
+            .init_resource::<MipPipelines>()
             .init_resource::<DepthCopyPipeline>();
     }
 }

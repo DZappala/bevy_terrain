@@ -1,23 +1,23 @@
 use crate::{
     terrain::TerrainComponents,
-    terrain_data::{gpu_tile_atlas::GpuAtlasAttachment, GpuTileAtlas, TileAtlas},
+    terrain_data::{GpuAttachment, GpuTileAtlas, TileAtlas},
     util::GpuBuffer,
 };
 use bevy::{
     ecs::{
         query::ROQueryItem,
-        system::{lifetimeless::SRes, SystemParamItem},
+        system::{SystemParamItem, lifetimeless::SRes},
     },
     math::Affine3,
     prelude::*,
     render::{
+        Extract,
         render_asset::RenderAssets,
         render_phase::{PhaseItem, RenderCommand, RenderCommandResult, TrackedRenderPass},
         render_resource::*,
         renderer::RenderDevice,
         storage::{GpuShaderStorageBuffer, ShaderStorageBuffer},
         texture::FallbackImage,
-        Extract,
     },
 };
 use std::array;
@@ -54,10 +54,14 @@ struct AttachmentConfig {
     center_size: f32,
     scale: f32,
     offset: f32,
+    mask: u32,
+    padding1: u32,
+    padding2: u32,
+    padding3: u32,
 }
 
 impl AttachmentConfig {
-    fn new(attachment: &GpuAtlasAttachment) -> Self {
+    fn new(attachment: &GpuAttachment) -> Self {
         Self {
             center_size: attachment.buffer_info.center_size as f32,
             texture_size: attachment.buffer_info.texture_size as f32,
@@ -65,6 +69,10 @@ impl AttachmentConfig {
                 / attachment.buffer_info.texture_size as f32,
             offset: attachment.buffer_info.border_size as f32
                 / attachment.buffer_info.texture_size as f32,
+            mask: attachment.buffer_info.mask as u32,
+            padding1: 0,
+            padding2: 0,
+            padding3: 0,
         }
     }
 }
@@ -94,7 +102,7 @@ impl AttachmentUniform {
 #[derive(Default, ShaderType)]
 pub struct TerrainUniform {
     lod_count: u32,
-    scale: f32,
+    scale: Vec3,
     min_height: f32,
     max_height: f32,
     height_scale: f32,
@@ -112,9 +120,9 @@ impl TerrainUniform {
 
         Self {
             lod_count: tile_atlas.lod_count,
-            scale: tile_atlas.shape.scale() as f32,
-            min_height: tile_atlas.min_height,
-            max_height: tile_atlas.max_height,
+            scale: tile_atlas.shape.scale().as_vec3(),
+            min_height: tile_atlas.min_height * tile_atlas.height_scale,
+            max_height: tile_atlas.max_height * tile_atlas.height_scale,
             height_scale: tile_atlas.height_scale,
             world_from_local,
             local_from_world_transpose_a,
@@ -139,13 +147,11 @@ impl GpuTerrain {
         tile_atlas: &TileAtlas,
         gpu_tile_atlas: &GpuTileAtlas,
     ) -> Self {
-        let atlas_sampler = device.create_sampler(&SamplerDescriptor {
-            mag_filter: FilterMode::Linear,
-            min_filter: FilterMode::Linear,
-            mipmap_filter: FilterMode::Linear,
-            anisotropy_clamp: 16, // Todo: make this customisable
-            ..default()
-        });
+        let attachment_buffer = GpuBuffer::create(
+            device,
+            &AttachmentUniform::new(gpu_tile_atlas),
+            BufferUsages::UNIFORM,
+        );
 
         let attachment_textures = array::from_fn(|i| {
             gpu_tile_atlas
@@ -154,15 +160,25 @@ impl GpuTerrain {
                 .find(|(_, attachment)| attachment.index == i)
                 .map_or(
                     fallback_image.d2_array.texture_view.clone(),
-                    |(_, attachment)| attachment.atlas_texture.create_view(&default()),
+                    |(_, attachment)| {
+                        attachment
+                            .atlas_texture
+                            .create_view(&TextureViewDescriptor {
+                                format: Some(attachment.buffer_info.format.render_format()),
+                                usage: Some(TextureUsages::TEXTURE_BINDING),
+                                ..default()
+                            })
+                    },
                 )
         });
 
-        let attachment_buffer = GpuBuffer::create(
-            device,
-            &AttachmentUniform::new(gpu_tile_atlas),
-            BufferUsages::UNIFORM,
-        );
+        let atlas_sampler = device.create_sampler(&SamplerDescriptor {
+            mag_filter: FilterMode::Linear,
+            min_filter: FilterMode::Linear,
+            mipmap_filter: FilterMode::Linear,
+            anisotropy_clamp: 16, // Todo: make this customisable
+            ..default()
+        });
 
         Self {
             terrain_buffer: tile_atlas.terrain_buffer.clone(),
@@ -181,7 +197,7 @@ impl GpuTerrain {
         tile_atlases: Extract<Query<(Entity, &TileAtlas), Added<TileAtlas>>>,
     ) {
         for (terrain, tile_atlas) in &tile_atlases {
-            let gpu_tile_atlas = gpu_tile_atlases.get(&terrain).unwrap();
+            let gpu_tile_atlas = &gpu_tile_atlases[&terrain];
 
             gpu_terrains.insert(
                 terrain,
@@ -235,7 +251,7 @@ impl<const I: usize, P: PhaseItem> RenderCommand<P> for SetTerrainBindGroup<I> {
         gpu_terrains: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let gpu_terrain = gpu_terrains.into_inner().get(&item.entity()).unwrap();
+        let gpu_terrain = &gpu_terrains.into_inner()[&item.main_entity()];
 
         if let Some(bind_group) = &gpu_terrain.terrain_bind_group {
             pass.set_bind_group(I, bind_group, &[]);

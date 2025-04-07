@@ -43,8 +43,6 @@
 //!
 //! [^note]: Some of these claims are not yet fully implemented.
 
-#[cfg(feature = "high_precision")]
-pub mod big_space;
 pub mod debug;
 pub mod formats;
 pub mod math;
@@ -59,12 +57,12 @@ pub mod terrain_data;
 pub mod terrain_view;
 pub mod util;
 
+#[doc(hidden)]
 pub mod prelude {
     //! `use bevy_terrain::prelude::*;` to import common components, bundles, and plugins.
-    // #[doc(hidden)]
 
     #[cfg(feature = "high_precision")]
-    pub use crate::big_space::{BigSpaceCommands, Grid};
+    pub use big_space::{commands::BigSpaceCommands, grid::Grid};
 
     pub use crate::{
         debug::{

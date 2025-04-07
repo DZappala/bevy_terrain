@@ -5,7 +5,6 @@ use crate::{
 use bevy_math::{IVec2, U64Vec2};
 use bevy_terrain::{
     math::TileCoordinate,
-    prelude::AttachmentFormat,
     terrain_data::{AttachmentConfig, AttachmentLabel},
 };
 use gdal::{
@@ -16,7 +15,6 @@ use gdal::{
 use itertools::Itertools;
 use std::{
     fs,
-    ops::Not,
     path::{Path, PathBuf},
     process::Command,
     str::FromStr,
@@ -112,6 +110,7 @@ impl PreprocessContext {
                 texture_size,
                 border_size,
                 mip_level_count,
+                mask: create_mask,
                 format,
             },
             src_path,
@@ -135,8 +134,8 @@ impl PreprocessContext {
         no_data: PreprocessNoData,
         data_type: PreprocessDataType,
         fill_radius: f32,
-        overwrite: bool,
         create_mask: bool,
+        overwrite: bool,
     ) -> PreprocessResult<(Dataset, Self)> {
         let mut src_datasets = src_path
             .iter()
@@ -325,12 +324,12 @@ pub fn clear_directory(directory: &Path) {
 pub fn iter_directory(directory: &Path) -> impl Iterator<Item = PathBuf> {
     fs::read_dir(directory).unwrap().filter_map(|entry| {
         let path = entry.unwrap().path();
+        let name = path.file_name().unwrap().to_string_lossy();
 
-        path.file_name()
-            .unwrap()
-            .to_string_lossy()
-            .starts_with("._")
-            .not()
-            .then_some(path)
+        if !name.starts_with("._") && !name.ends_with(".aux.xml") {
+            Some(path)
+        } else {
+            None
+        }
     })
 }
