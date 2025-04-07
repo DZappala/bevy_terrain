@@ -1,7 +1,7 @@
 #define_import_path bevy_terrain::vertex
 
 #import bevy_terrain::types::{Blend, Coordinate, WorldCoordinate}
-#import bevy_terrain::bindings::{terrain_view, approximate_height}
+#import bevy_terrain::bindings::{terrain, terrain_view, approximate_height}
 #import bevy_terrain::functions::{compute_coordinate, compute_world_coordinate, correct_world_coordinate, apply_height, lookup_tile, morph_coordinate, compute_blend}
 #import bevy_terrain::attachments::sample_height
 #import bevy_pbr::mesh_view_bindings::view
@@ -51,16 +51,14 @@ fn vertex(input: VertexInput) -> VertexOutput {
     var info = vertex_info(input);
 
     let tile   = lookup_tile(info.coordinate, info.blend);
+    // Sample height and normalize it between min/max height
     var height = sample_height(tile);
-
-//    if (distance(info.world_position, view.world_position) > 3000000.0) {
-//        height = 9000.0;
-//    }
-//    else {
-//        height = -12000.0;
-//    }
-
-//     height = height * 30.0;
+    
+    // First normalize the raw height value to 0-1 range
+    height = (height / terrain.height_scale - terrain.min_height) / (terrain.max_height - terrain.min_height);
+    
+    // Then apply the terrain scale for final displacement
+    height = height * terrain.scale * 0.005;
 
     return vertex_output(&info, height);
 }

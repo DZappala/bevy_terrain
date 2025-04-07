@@ -50,7 +50,7 @@ impl AssetLoader for TiffLoader {
         let path_ref = ctx.asset_path();
         let color_type = decoder.colortype().unwrap_or_else(|err| {
             panic!(
-                "Header of .tif does not define a colortype or dtype\nPath: {path_ref:?}\nDetails: {err:?}"
+                "Header of .tif does not define a colortype or dtype\nPath to tile: {path_ref:?}\nDetails: {err:?}"
             )
         });
 
@@ -58,20 +58,21 @@ impl AssetLoader for TiffLoader {
             ColorType::Gray(_) | ColorType::GrayA(_) => match decoding_result {
                 DecodingResult::U8(_) => TextureFormat::R8Unorm,
                 DecodingResult::U16(_) => TextureFormat::R16Unorm,
+                DecodingResult::I16(_) => TextureFormat::R16Sint,
                 DecodingResult::U32(_) => TextureFormat::R32Uint,
                 DecodingResult::F32(_) => TextureFormat::R32Float,
                 _ => todo!(
-                    "Unimplemented colortype-datatype combination. Valid data types for \"Gray\" are UInt8 (a.k.a. byte), UInt16, and UInt32\nPath: {path_ref:?}\nColortype: {color_type:?}\n{dtype_str}"
+                    "\n\tColortype-datatype combination.\n\tValid data types for \"Gray\" are\n\t\tUInt8 (aka byte),\n\t\tUInt16,\n\t\tInt16,\n\t\tUInt32\n\tPath to tile: {path_ref:?}\n\tColortype: {color_type:?}\n\t{dtype_str}"
                 ),
             },
             ColorType::RGB(_) | ColorType::RGBA(_) => match decoding_result {
                 DecodingResult::U8(_) => TextureFormat::Rgba8Unorm,
                 _ => todo!(
-                    "Unimplemented colortype-datatype combination. Valid data types for \"RGB and RGBA\" is UInt8 (a.k.a. byte).\nPath: {path_ref:?}\nColortype: {color_type:?}\nDatatype: {dtype_str:?}"
+                    "\n\tColortype-datatype combination.\nValid data types for \"RGB and RGBA\" are\n\t\tUInt8 (aka byte).\n\tPath to tile: {path_ref:?}\n\tColortype: {color_type:?}\nDatatype: {dtype_str:?}"
                 ),
             },
             _ => todo!(
-                ".tif colortype or dtype not yet implemented.\nPath: {path_ref:?}\nColortype:{color_type:?}\nDatatype: {dtype_str:?}",
+                "\t.tif colortype or dtype.\n\tPath to tile: {path_ref:?}\n\tColortype:{color_type:?}\n\tDatatype: {dtype_str:?}",
             ),
         };
 
@@ -92,7 +93,7 @@ impl AssetLoader for TiffLoader {
         match img_result {
             Ok(x) => Ok(x),
             Err(_) => panic!(
-                "Failed to convert Image:\n\tpath: {path_ref:?}\n\tcolortype {color_type:?}\n\tdtype {dtype_str:?}"
+                "Failed to convert Image:\n\tPath to tile: {path_ref:?}\n\tcolortype {color_type:?}\n\tdtype {dtype_str:?}"
             ),
         }
     }

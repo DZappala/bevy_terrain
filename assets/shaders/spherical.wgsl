@@ -29,18 +29,20 @@ fn sample_albedo(tile: AtlasTile) -> vec4<f32> {
 
 fn color_earth(tile: AtlasTile) -> vec4<f32> {
    let height = sample_height(tile) / terrain.height_scale;
+   let normalized_height = (height - terrain.min_height) / (terrain.max_height - terrain.min_height);
 
-    if (height < 0.0) {
-        return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(mix(0.0, 0.075, pow(height / terrain.min_height, 0.25)), 0.5), 0.0);
+    if (normalized_height < 0.0) {
+        return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(mix(0.0, 0.075, pow(-normalized_height, 0.25)), 0.5), 0.0);
     } else {
-        return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(mix(0.09, 0.6, pow(height / terrain.max_height * 1.4, 1.0)), 0.5), 0.0);
+        return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(mix(0.09, 0.6, pow(normalized_height * 1.4, 1.0)), 0.5), 0.0);
     }
 }
 
 fn color_dataset(tile: AtlasTile) -> vec4<f32> {
     let height = sample_height(tile) / terrain.height_scale;
+    let normalized_height = (height - terrain.min_height) / (terrain.max_height - terrain.min_height);
 
-    return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(inverse_mix(terrain.min_height, terrain.max_height, height), 0.5), 0.0);
+    return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(normalized_height, 0.5), 0.0);
 }
 
 fn sample_color(tile: AtlasTile) -> vec4<f32> {
@@ -82,9 +84,9 @@ fn slope_gradient(world_normal: vec3<f32>, surface_gradient: vec3<f32>) -> vec4<
 fn fragment(input: FragmentInput) -> FragmentOutput {
     var info = fragment_info(input);
 
-    let tile             = lookup_tile(info.coordinate, info.blend);
-    let mask             = sample_height_mask(tile);
-    var color            = sample_color(tile);
+    let tile = lookup_tile(info.coordinate, info.blend);
+    let mask = sample_height_mask(tile);
+    var color= sample_color(tile);
     var surface_gradient = sample_surface_gradient(tile, info.tangent_space);
 
     if mask { discard; }
@@ -103,6 +105,6 @@ fn fragment(input: FragmentInput) -> FragmentOutput {
     fragment_output(&info, &output, color, surface_gradient);
 #endif
 
-    fragment_debug(&info, &output, tile, surface_gradient);
+    fragment_debug(&info, &output, input, tile, surface_gradient);
     return output;
 }

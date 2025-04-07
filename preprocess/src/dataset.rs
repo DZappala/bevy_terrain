@@ -61,6 +61,7 @@ impl FromStr for PreprocessDataType {
     }
 }
 
+#[derive(Debug, Clone)]
 pub(crate) struct FaceInfo {
     pub(crate) lod: u32,
     pub(crate) pixel_start: IVec2,
@@ -68,6 +69,7 @@ pub(crate) struct FaceInfo {
     pub(crate) path: PathBuf,
 }
 
+#[derive(Debug)]
 pub struct PreprocessContext {
     pub(crate) data_type: GdalDataType,
     pub(crate) no_data_value: Option<f64>,
@@ -211,6 +213,7 @@ impl PreprocessContext {
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct RasterbandConfig {
     color_interpretation: ColorInterpretation,
 }
@@ -269,18 +272,19 @@ pub(crate) fn create_empty_dataset<T: Copy + GdalType>(
 ) -> PreprocessResult<Dataset> {
     let driver = DriverManager::get_driver_by_name("GTiff")?;
 
-    // Todo: consider copying the photometric info
     let options = RasterCreationOptions::from_iter([
         "TILED=YES",
         "BLOCKXSIZE=512",
         "BLOCKYSIZE=512",
         //  "SPARSE_OK=TRUE",
-        "INTERLEAVE=PIXEL", // TODO: benchmark pixel vs band
-        match context.attachment.format {
-            AttachmentFormat::RU16 | AttachmentFormat::RF32 => "PHOTOMETRIC=MINISBLACK",
-            AttachmentFormat::RgbaU8 => "PHOTOMETRIC=RGB",
-            _ => "",
-        },
+        // TODO: benchmark pixel vs band
+        "INTERLEAVE=PIXEL",
+        // Todo: consider copying the photometric info
+        // match context.attachment.format {
+        //     AttachmentFormat::RU16 | AttachmentFormat::RF32 => "PHOTOMETRIC=MINISBLACK",
+        //     AttachmentFormat::RgbaU8 => "PHOTOMETRIC=RGB",
+        //     _ => "",
+        // },
     ]);
 
     let mut dst = driver.create_with_band_type_with_options::<T, _>(

@@ -62,7 +62,7 @@ fn fragment_output(info: ptr<function, FragmentInfo>, output: ptr<function, Frag
 #endif
 }
 
-fn fragment_debug(info: ptr<function, FragmentInfo>, output: ptr<function, FragmentOutput>, tile: AtlasTile, surface_gradient: vec3<f32>) {
+fn fragment_debug(info: ptr<function, FragmentInfo>, output: ptr<function, FragmentOutput>, input: FragmentInput, tile: AtlasTile, surface_gradient: vec3<f32>) {
     let normal = normalize((*info).world_coordinate.normal - surface_gradient);
 
 #ifdef SHOW_DATA_LOD
@@ -89,6 +89,9 @@ fn fragment_debug(info: ptr<function, FragmentInfo>, output: ptr<function, Fragm
         (*output).color = mix((*output).color, vec4<f32>(0.3), 0.5);
     }
 #endif
+#ifdef DEBUG_HEIGHT
+    (*output).color = vec4<f32>(input.height, input.height, input.height, 1.0);
+#endif
 }
 
 @fragment
@@ -100,10 +103,12 @@ fn fragment(input: FragmentInput) -> FragmentOutput {
     let color            = vec4<f32>(0.5);
     let surface_gradient = sample_surface_gradient(tile, info.tangent_space);
 
+
     if mask { discard; }
 
     var output: FragmentOutput;
     fragment_output(&info, &output, color, surface_gradient);
-    fragment_debug(&info, &output, tile, surface_gradient);
+    fragment_debug(&info, &output, input, tile, surface_gradient);
+
     return FragmentOutput(vec4<f32>(output.color.xyz, 1.0));
 }

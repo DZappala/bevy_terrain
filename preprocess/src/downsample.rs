@@ -9,7 +9,7 @@ use bevy_terrain::math::TileCoordinate;
 use gdal::raster::{Buffer, GdalType, RasterBand, ResampleAlg};
 use itertools::{Itertools, izip};
 use num::NumCast;
-use rayon::prelude::*;
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use std::collections::HashSet;
 
 pub fn downsample_and_stitch<T: Copy + GdalType + PartialEq + NumCast>(
