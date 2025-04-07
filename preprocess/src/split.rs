@@ -6,18 +6,11 @@ use crate::{
 };
 use bevy_math::IVec2;
 use bevy_terrain::math::TileCoordinate;
-use gdal::{
-    Metadata,
-    raster::{Buffer, GdalType},
-};
+use gdal::raster::{Buffer, GdalType};
 use itertools::{Itertools, iproduct};
 use num::NumCast;
-use rayon::prelude::*;
-use std::{
-    collections::HashMap,
-    io::Write,
-    sync::{Arc, Mutex},
-};
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use std::collections::HashMap;
 
 pub fn split_and_stitch<T: Copy + GdalType + PartialEq + NumCast>(
     faces: HashMap<u32, FaceInfo>,
@@ -43,14 +36,8 @@ pub fn split_and_stitch<T: Copy + GdalType + PartialEq + NumCast>(
     let count = 2 * input_tiles.len() as u64;
     let progress_callback = CountingProgressCallback::new(count, progress_callback);
 
-    let output_tiles = split::<T>(&input_tiles, faces, datasets, context, &progress_callback)
-        .unwrap_or_else(|err| {
-            panic!("Unable to split.\ninput: {input_tiles:?}\n{context:?}\nError: {err:?}")
-        });
-
-    stitch::<T>(&output_tiles, context, &progress_callback).unwrap_or_else(|err| {
-        panic!("Unable to stitch.\noutput: {output_tiles:?}\nContext: {context:?}\nError: {err:?}")
-    });
+    let output_tiles = split::<T>(&input_tiles, faces, datasets, context, &progress_callback)?;
+    stitch::<T>(&output_tiles, context, &progress_callback)?;
 
     Ok(output_tiles)
 }
@@ -62,23 +49,12 @@ fn split<T: Copy + GdalType + PartialEq + NumCast>(
     context: &PreprocessContext,
     progress_callback: &CountingProgressCallback,
 ) -> PreprocessResult<Vec<TileCoordinate>> {
-    let stdout = Arc::new(Mutex::new(std::io::stdout()));
+    // let stdout = Arc::new(Mutex::new(std::io::stdout()));
     input_tiles
         .par_iter()
         .map(|&tile_coordinate| {
-            let src_dataset = datasets
-                .get(&tile_coordinate.face)
-                .unwrap_or_else(|| {
-                    panic!(
-                        "Failed to retrive value {:?} from datasets",
-                        &tile_coordinate.face
-                    )
-                })
-                .get();
-
-            let face = faces
-                .get(&tile_coordinate.face)
-                .unwrap_or_else(|| panic!("Failed to get face {:?}", &tile_coordinate.face));
+            let src_dataset = datasets.get(&tile_coordinate.face).unwrap().get();
+            let face = faces.get(&tile_coordinate.face).unwrap();
 
             let tile_pixel_start = tile_coordinate.xy * context.attachment.center_size() as i32;
             let tile_pixel_end = (tile_coordinate.xy + 1) * context.attachment.center_size() as i32;
@@ -100,7 +76,7 @@ fn split<T: Copy + GdalType + PartialEq + NumCast>(
             let copy_buffers: Vec<Buffer<T>> = src_dataset
                 .rasterbands()
                 .map(|src_raster| {
-                    let src_raster = src_raster.unwrap_or_else(|err| panic!("Unable to obtain raster \nError: {err:?}"));
+                    let src_raster = src_raster?;
 
                     let copy_buffer = src_raster.read_as::<T>(
                         (src_offset.x as isize, src_offset.y as isize),
@@ -112,7 +88,7 @@ fn split<T: Copy + GdalType + PartialEq + NumCast>(
                     let no_data_value = src_raster
                         .no_data_value()
                         .map(|v| T::from(v).ok_or(PreprocessError::NoDataOutOfRange))
-                        .transpose().unwrap_or_else(|err| panic!("could not retrieve 'no_data_value' from raster:\nRaster: {:?}\n{err:?}", src_raster.description()));
+                        .transpose()?;
 
                     has_data |= no_data_value.is_none()
                         || copy_buffer
@@ -122,82 +98,65 @@ fn split<T: Copy + GdalType + PartialEq + NumCast>(
 
                     Ok::<Buffer<T>, PreprocessError>(copy_buffer)
                 })
-                .try_collect()
-                .unwrap_or_else(|err| {
-                    panic!("Failed to create buffers from dataset {:?}\nError: {err:?}", *src_dataset)
-                });
+                .try_collect()?;
 
             // only create the tile if it actually contains data
-            if !has_data { 
-                progress_callback.increment();
-                return Ok::<Option<TileCoordinate>, PreprocessError>(has_data.then_some(tile_coordinate))
-            }
+            if has_data {
+                let tile_dataset = create_tile_dataset::<T>(tile_coordinate, context).unwrap();
 
-            let tile_dataset = create_tile_dataset::<T>(tile_coordinate, context).unwrap_or_else(|err| panic!("Unable to create dataset for tile: {tile_coordinate:?}\nContext: {context:?}\nError: {err:?}"));
+                for (band_index, mut copy_buffer) in copy_buffers.into_iter().enumerate() {
+                    let mut tile_raster = tile_dataset.rasterband(band_index + 1)?;
 
-            copy_buffers.into_iter().enumerate().for_each(|(band_index, mut copy_buffer)| {
-                let mut tile_raster =
-                    tile_dataset
-                        .rasterband(band_index + 1)
-                        .unwrap_or_else(|err| {
-                            panic!(
-                                "Attempted to get rasterband at index {:?}\nError: {err:?}",
-                                band_index + 1
-                            )
-                        });
+                    // let stdout = Arc::clone(&stdout);
+                    // let Ok(_) = stdout.lock().unwrap().write_all(
+                    //     &format!(
+                    //         "tile_offset.x: {:?}\n\
+                    //     tile_offset.y: {:?}\n\
+                    //     copy_size.x: {:?}\n\
+                    //     copy_size.y: {:?}\n\
+                    //     RasterXSize: {:?}\n\
+                    //     RasterYSize: {:?}\n\
+                    //     DataType: {:?}\n\
+                    //     ColorType: {:?}\n\
+                    //     Meta: {:?}\n\
+                    //     Size: {:?}\n\
+                    //     Unit: {:?}\n\
+                    //     Scale: {:?}\n\
+                    //     Offset: {:?}\n\
+                    //     BlockSize: {:?}\n\
+                    //     Description: {:?}",
+                    //         tile_offset.x,
+                    //         tile_offset.y,
+                    //         copy_size.x,
+                    //         copy_size.y,
+                    //         tile_raster.x_size(),
+                    //         tile_raster.y_size(),
+                    //         tile_raster.band_type(),
+                    //         tile_raster.color_interpretation(),
+                    //         tile_raster.metadata().collect_vec(),
+                    //         tile_raster.size(),
+                    //         tile_raster.unit(),
+                    //         tile_raster.scale(),
+                    //         tile_raster.offset(),
+                    //         tile_raster.block_size(),
+                    //         tile_raster.description()
+                    //     )
+                    //     .into_bytes(),
+                    // ) else {
+                    //     continue;
+                    // };
 
-                let stdout = Arc::clone(&stdout);
-                let Ok(_) = stdout.lock().unwrap().write_all(
-                    &format!(
-                        "tile_offset.x: {:?}\n\
-                    tile_offset.y: {:?}\n\
-                    copy_size.x: {:?}\n\
-                    copy_size.y: {:?}\n\
-                    RasterXSize: {:?}\n\
-                    RasterYSize: {:?}\n\
-                    DataType: {:?}\n\
-                    ColorType: {:?}\n\
-                    Meta: {:?}\n\
-                    Size: {:?}\n\
-                    Unit: {:?}\n\
-                    Scale: {:?}\n\
-                    Offset: {:?}\n\
-                    BlockSize: {:?}\n\
-                    Description: {:?}",
-                        tile_offset.x,
-                        tile_offset.y,
-                        copy_size.x,
-                        copy_size.y,
-                        tile_raster.x_size(),
-                        tile_raster.y_size(),
-                        tile_raster.band_type(),
-                        tile_raster.color_interpretation(),
-                        tile_raster.metadata().collect_vec(),
-                        tile_raster.size(),
-                        tile_raster.unit(),
-                        tile_raster.scale(),
-                        tile_raster.offset(),
-                        tile_raster.block_size(),
-                        tile_raster.description()
-                    )
-                    .into_bytes(),
-                ) else {
-                    return;
-                };
-
-                tile_raster.write::<T>(
+                    tile_raster.write::<T>(
                         (tile_offset.x as isize, tile_offset.y as isize),
                         (copy_size.x as usize, copy_size.y as usize),
                         &mut copy_buffer,
-                    )
-                    .unwrap_or_else(|err| {
-                        panic!("Faiiled to write tile raster to disk.\nTile offset: {tile_offset:?}\nCopy_size: {copy_size:?}\nError: {err:?}")
-                    });
-                });
+                    )?;
+                }
+            }
 
             progress_callback.increment();
-            Ok::<Option<TileCoordinate>, PreprocessError>(has_data.then_some(tile_coordinate))
 
+            Ok::<Option<TileCoordinate>, PreprocessError>(has_data.then_some(tile_coordinate))
         })
         .filter_map(Result::transpose)
         .collect::<PreprocessResult<Vec<TileCoordinate>>>()

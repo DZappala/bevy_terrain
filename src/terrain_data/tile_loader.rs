@@ -1,7 +1,4 @@
-use crate::terrain_data::{
-    attachment::{AttachmentData, AttachmentFormat},
-    tile_atlas::{TileAtlas, TileAttachment},
-};
+use crate::terrain_data::{AttachmentData, AttachmentFormat, AttachmentTile, TileAtlas};
 use bevy::{
     asset::{AssetServer, Assets, Handle},
     image::Image,
@@ -11,10 +8,8 @@ use slab::Slab;
 
 struct LoadingTile {
     handle: Handle<Image>,
-    tile: TileAttachment,
-    texture_size: u32,
+    tile: AttachmentTile,
     format: AttachmentFormat,
-    mip_level_count: u32,
 }
 
 #[derive(Component)]
@@ -31,7 +26,7 @@ impl Default for DefaultLoader {
 }
 
 impl DefaultLoader {
-    fn to_load_next(&self, tiles: &mut Vec<TileAttachment>) -> Option<TileAttachment> {
+    fn to_load_next(&self, tiles: &mut Vec<AttachmentTile>) -> Option<AttachmentTile> {
         // Todo: tile prioritization goes here
         tiles.pop()
     }
@@ -44,16 +39,13 @@ impl DefaultLoader {
     ) {
         self.loading_tiles.retain(|_, tile| {
             if asset_server.is_loaded(tile.handle.id()) {
-                // Todo: generating mip maps takes time -> this should run asynchronously
-
                 let image = images.get(tile.handle.id()).unwrap();
-
-                let mut data = AttachmentData::from_bytes(&image.data, tile.format);
-                data.generate_mipmaps(tile.texture_size, tile.mip_level_count);
-
+                let data = AttachmentData::from_bytes(image.data.as_ref().unwrap(), tile.format);
                 atlas.tile_loaded(tile.tile.clone(), data);
 
                 false
+            } else if asset_server.load_state(tile.handle.id()).is_failed() {
+                return false;
             } else {
                 true
             }
@@ -63,7 +55,7 @@ impl DefaultLoader {
     fn start_loading(&mut self, atlas: &mut TileAtlas, asset_server: &mut AssetServer) {
         while self.loading_tiles.len() < self.loading_tiles.capacity() {
             if let Some(tile) = self.to_load_next(&mut atlas.to_load) {
-                let attachment = atlas.attachments.get(&tile.label).unwrap();
+                let attachment = &atlas.attachments[&tile.label];
 
                 let path = tile
                     .coordinate
@@ -72,9 +64,7 @@ impl DefaultLoader {
                 self.loading_tiles.insert(LoadingTile {
                     handle: asset_server.load(path),
                     tile,
-                    texture_size: attachment.texture_size,
                     format: attachment.format,
-                    mip_level_count: attachment.mip_level_count,
                 });
             } else {
                 break;

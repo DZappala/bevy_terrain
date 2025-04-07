@@ -28,7 +28,7 @@ fn sample_height(tile: AtlasTile) -> f32 {
 #ifdef SAMPLE_GRAD
     return terrain.height_scale * textureSampleGrad(height_attachment, terrain_sampler, uv.uv, tile.index, uv.dx, uv.dy).x;
 #else
-    return terrain.height_scale * textureSampleLevel(height_attachment, terrain_sampler, uv.uv, tile.index, 0.0).x;
+    return terrain.height_scale * textureSampleLevel(height_attachment, terrain_sampler, uv.uv, tile.index, tile.blend_ratio).x;
 #endif
 #else
     return terrain.height_scale * textureSampleLevel(height_attachment, terrain_sampler, uv.uv, tile.index, 0.0).x;
@@ -37,6 +37,9 @@ fn sample_height(tile: AtlasTile) -> f32 {
 
 fn sample_height_mask(tile: AtlasTile) -> bool {
     let attachment = attachments.height;
+
+    if (attachment.mask == 0) { return false; }
+
     let uv         = tile.coordinate.uv * attachment.scale + attachment.offset;
     let raw_height = textureGather(0, height_attachment, terrain_sampler, uv, tile.index);
     let mask       = bitcast<vec4<u32>>(raw_height) & vec4<u32>(1);
@@ -56,9 +59,9 @@ fn sample_surface_gradient(tile: AtlasTile, tangent_space: TangentSpace) -> vec3
     let height_u = textureSampleGrad(height_attachment, terrain_sampler, uv.uv + vec2<f32>( step, -step), tile.index, uv.dx, uv.dy).x;
     let height_v = textureSampleGrad(height_attachment, terrain_sampler, uv.uv + vec2<f32>(-step,  step), tile.index, uv.dx, uv.dy).x;
 #else
-    let height   = textureSampleLevel(height_attachment, terrain_sampler, uv.uv + vec2<f32>(-step, -step), tile.index, 0.0).x;
-    let height_u = textureSampleLevel(height_attachment, terrain_sampler, uv.uv + vec2<f32>( step, -step), tile.index, 0.0).x;
-    let height_v = textureSampleLevel(height_attachment, terrain_sampler, uv.uv + vec2<f32>(-step,  step), tile.index, 0.0).x;
+    let height   = textureSampleLevel(height_attachment, terrain_sampler, uv.uv + vec2<f32>(-step, -step), tile.index, tile.blend_ratio).x;
+    let height_u = textureSampleLevel(height_attachment, terrain_sampler, uv.uv + vec2<f32>( step, -step), tile.index, tile.blend_ratio).x;
+    let height_v = textureSampleLevel(height_attachment, terrain_sampler, uv.uv + vec2<f32>(-step,  step), tile.index, tile.blend_ratio).x;
 #endif
 
     var height_duv = vec2<f32>(height_u - height, height_v - height) / scale;
@@ -68,7 +71,6 @@ fn sample_surface_gradient(tile: AtlasTile, tangent_space: TangentSpace) -> vec3
     let lod   = max(0.0, log2(attachment.texture_size * scale));
     let ratio = saturate((lod - start) / (end - start));
 
-#ifdef TEST2
     if (ratio > 0.0 && tile.coordinate.lod == terrain.lod_count - 1) {
         let coord       = attachment.texture_size * uv.uv - 0.5;
         let coord_floor = floor(coord);
@@ -94,10 +96,9 @@ fn sample_surface_gradient(tile: AtlasTile, tangent_space: TangentSpace) -> vec3
         let upscaled_height_duv = attachment.texture_size * vec2(dot(Y, dX * height_matrix), dot(dY, X * height_matrix));
         height_duv = mix(height_duv, upscaled_height_duv, ratio);
     }
-#endif
 
-    let height_dx = dot(height_duv, tile.coordinate.uv_dx) * (1.0 - 0.0 * tile.blend_ratio);
-    let height_dy = dot(height_duv, tile.coordinate.uv_dy) * (1.0 - 0.0 * tile.blend_ratio);
+    let height_dx = dot(height_duv, tile.coordinate.uv_dx);
+    let height_dy = dot(height_duv, tile.coordinate.uv_dy);
 
 //    let height_dx = dpdx(height);
 //    let height_dy = dpdy(height);

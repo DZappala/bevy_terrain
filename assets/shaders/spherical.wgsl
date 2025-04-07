@@ -53,6 +53,12 @@ fn sample_color(tile: AtlasTile) -> vec4<f32> {
         case 0u: { color = color_dataset(tile); }
         case 1u: { color = color_earth(tile);   }
         case 2u: { color = sample_albedo(tile); }
+        case 3u: {
+            color = sample_albedo(tile);
+            if (color.a == 0) {
+                color = vec4<f32>(0.5);
+            }
+        }
         case default: {}
     }
 
@@ -63,22 +69,6 @@ fn slope_gradient(world_normal: vec3<f32>, surface_gradient: vec3<f32>) -> vec4<
     let slope = compute_slope(world_normal, surface_gradient);
     return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(5 * slope + 0.1, 0.5), 0.0);
 }
-
-//fn relief_shading(world_normal: vec3<f32>, surface_gradient: vec3<f32>) -> f32 {
-//    let normal  = normalize(world_normal - surface_gradient);
-//
-//    // Define the light direction as the base sphere normal
-//    let light_dir = world_normal;
-//
-//    // Compute diffuse lighting (Lambertian shading)
-//    let intensity = max(dot(normal, light_dir), 0.0);
-//
-//    return pow(intensity, 2.0);
-//
-////    return 1.0 - compute_slope(world_normal, surface_gradient);
-//}
-
-
 
 @fragment
 fn fragment(input: FragmentInput) -> FragmentOutput {

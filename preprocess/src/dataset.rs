@@ -1,11 +1,11 @@
 use crate::{
+    AttachmentFormat,
     cli::Cli,
     result::{PreprocessError, PreprocessResult},
 };
 use bevy_math::{IVec2, U64Vec2};
 use bevy_terrain::{
     math::TileCoordinate,
-    prelude::AttachmentFormat,
     terrain_data::{AttachmentConfig, AttachmentLabel},
 };
 use gdal::{
@@ -16,7 +16,6 @@ use gdal::{
 use itertools::Itertools;
 use std::{
     fs,
-    ops::Not,
     path::{Path, PathBuf},
     process::Command,
     str::FromStr,
@@ -61,7 +60,6 @@ impl FromStr for PreprocessDataType {
     }
 }
 
-#[derive(Debug, Clone)]
 pub(crate) struct FaceInfo {
     pub(crate) lod: u32,
     pub(crate) pixel_start: IVec2,
@@ -69,7 +67,6 @@ pub(crate) struct FaceInfo {
     pub(crate) path: PathBuf,
 }
 
-#[derive(Debug)]
 pub struct PreprocessContext {
     pub(crate) data_type: GdalDataType,
     pub(crate) no_data_value: Option<f64>,
@@ -114,6 +111,7 @@ impl PreprocessContext {
                 texture_size,
                 border_size,
                 mip_level_count,
+                mask: create_mask,
                 format,
             },
             src_path,
@@ -137,8 +135,8 @@ impl PreprocessContext {
         no_data: PreprocessNoData,
         data_type: PreprocessDataType,
         fill_radius: f32,
-        overwrite: bool,
         create_mask: bool,
+        overwrite: bool,
     ) -> PreprocessResult<(Dataset, Self)> {
         let mut src_datasets = src_path
             .iter()
@@ -213,7 +211,6 @@ impl PreprocessContext {
     }
 }
 
-#[derive(Debug)]
 pub(crate) struct RasterbandConfig {
     color_interpretation: ColorInterpretation,
 }
@@ -272,19 +269,18 @@ pub(crate) fn create_empty_dataset<T: Copy + GdalType>(
 ) -> PreprocessResult<Dataset> {
     let driver = DriverManager::get_driver_by_name("GTiff")?;
 
+    // Todo: consider copying the photometric info
     let options = RasterCreationOptions::from_iter([
         "TILED=YES",
         "BLOCKXSIZE=512",
         "BLOCKYSIZE=512",
         //  "SPARSE_OK=TRUE",
-        // TODO: benchmark pixel vs band
-        "INTERLEAVE=PIXEL",
-        // Todo: consider copying the photometric info
-        // match context.attachment.format {
-        //     AttachmentFormat::RU16 | AttachmentFormat::RF32 => "PHOTOMETRIC=MINISBLACK",
-        //     AttachmentFormat::RgbaU8 => "PHOTOMETRIC=RGB",
-        //     _ => "",
-        // },
+        "INTERLEAVE=PIXEL", // TODO: benchmark pixel vs band
+        match context.attachment.format {
+            AttachmentFormat::R16U | AttachmentFormat::R32F => "PHOTOMETRIC=MINISBLACK",
+            AttachmentFormat::Rgba8U => "PHOTOMETRIC=RGB",
+            _ => "",
+        },
     ]);
 
     let mut dst = driver.create_with_band_type_with_options::<T, _>(
@@ -329,12 +325,12 @@ pub fn clear_directory(directory: &Path) {
 pub fn iter_directory(directory: &Path) -> impl Iterator<Item = PathBuf> {
     fs::read_dir(directory).unwrap().filter_map(|entry| {
         let path = entry.unwrap().path();
+        let name = path.file_name().unwrap().to_string_lossy();
 
-        path.file_name()
-            .unwrap()
-            .to_string_lossy()
-            .starts_with("._")
-            .not()
-            .then_some(path)
+        if !name.starts_with("._") && !name.ends_with(".aux.xml") {
+            Some(path)
+        } else {
+            None
+        }
     })
 }

@@ -300,7 +300,6 @@ fn last_cpl_err(cpl_err_class: CPLErr::Type) -> GdalError {
     }
 }
 
-#[derive(Debug)]
 pub struct SharedReadOnlyDataset {
     path: CString,
     pool: ThreadLocal<Dataset>,

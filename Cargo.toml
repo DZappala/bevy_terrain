@@ -17,38 +17,37 @@ members = ["preprocess"]
 [features]
 high_precision = ["dep:big_space"]
 rand = ["dep:rand"]
+metal_capture = ["dep:metal", "dep:wgpu-core"]
 
 [dependencies]
-bevy = "0.15.3"
-bevy_common_assets = { version = "0.12.0", features = ["ron"] }
-big_space = { version = "0.9.1", optional = true }
 tiff = "0.9.1"
 bytemuck = "1.22"
-ndarray = "0.15"
-itertools = "0.14.0"
 bitflags = "2.9.0"
 anyhow = "1.0.97"
 serde = "1.0.219"
-ron = "0.8.1"
 async-channel = "2.3.1"
+bevy = "0.16.0-rc.3"
+bevy_common_assets = { git = "https://github.com/kurtkuehnert/bevy_common_assets", branch = "bevy-0.16", features = [
+  "ron",
+] }
+ndarray = "0.16.1"
+itertools = "0.14.0"
 derive_more = { version = "2.0.1", features = ["from"] }
 slab = "0.4.9"
+strum = "0.27.1"
+strum_macros = "0.27.1"
+
+big_space = { git = "https://github.com/bushrat011899/big_space", branch = "no_std", features = [
+  "i32",
+], optional = true }
 rand = { version = "0.9.0", optional = true }
-
-[[example]]
-name = "minimal"
-path = "examples/minimal.rs"
-
-[[example]]
-name = "planar"
-path = "examples/planar.rs"
-required-features = ["high_precision"]
+metal = { version = "0.31.0", optional = true }
+wgpu-core = { version = "24.0.2", optional = true }
 
 [[example]]
 name = "spherical"
 path = "examples/spherical.rs"
 required-features = ["high_precision"]
-
 
 [[example]]
 name = "precision_demo"

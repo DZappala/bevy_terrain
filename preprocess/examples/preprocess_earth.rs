@@ -1,7 +1,9 @@
 use std::env::set_var;
 
-use bevy_terrain::prelude::*;
-use bevy_terrain_preprocess::prelude::*;
+use bevy_terrain::prelude::{AttachmentFormat, AttachmentLabel};
+use bevy_terrain_preprocess::prelude::{
+    Cli, PreprocessContext, PreprocessDataType, PreprocessNoData, preprocess,
+};
 use gdal::raster::GdalDataType;
 
 fn main() {

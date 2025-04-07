@@ -8,7 +8,7 @@ bevy_terrain = { path = "..", features = ["high_precision"] }
 gag = "1.0.0"
 gdal = { version = "0.17.0", features = ["bindgen", "ndarray"] }
 gdal-sys = "0.10.0"
-bevy_math = "0.15.3"
+bevy_math = "0.16.0-rc.3"
 itertools = "0.14.0"
 thiserror = "2.0.8"
 num = "0.4"
