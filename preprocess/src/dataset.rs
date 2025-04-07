@@ -1,4 +1,5 @@
 use crate::{
+    AttachmentFormat,
     cli::Cli,
     result::{PreprocessError, PreprocessResult},
 };
@@ -276,8 +277,8 @@ pub(crate) fn create_empty_dataset<T: Copy + GdalType>(
         //  "SPARSE_OK=TRUE",
         "INTERLEAVE=PIXEL", // TODO: benchmark pixel vs band
         match context.attachment.format {
-            AttachmentFormat::RU16 | AttachmentFormat::RF32 => "PHOTOMETRIC=MINISBLACK",
-            AttachmentFormat::RgbaU8 => "PHOTOMETRIC=RGB",
+            AttachmentFormat::R16U | AttachmentFormat::R32F => "PHOTOMETRIC=MINISBLACK",
+            AttachmentFormat::Rgba8U => "PHOTOMETRIC=RGB",
             _ => "",
         },
     ]);

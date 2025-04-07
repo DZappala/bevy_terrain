@@ -1,12 +1,8 @@
 use crate::{
     debug::DebugTerrain,
     render::{
-        DrawTerrainCommand, GpuTerrainView, GpuTerrainView, SetTerrainBindGroup,
-        SetTerrainViewBindGroup, TERRAIN_DEPTH_FORMAT, TerrainItem, TerrainTilingPrepassPipelines,
-        terrain_bind_group::SetTerrainBindGroup,
-        terrain_pass::{TERRAIN_DEPTH_FORMAT, TerrainItem},
-        terrain_view_bind_group::{DrawTerrainCommand, SetTerrainViewBindGroup},
-        tiling_prepass::TerrainTilingPrepassPipelines,
+        DrawTerrainCommand, GpuTerrainView, SetTerrainBindGroup, SetTerrainViewBindGroup,
+        TERRAIN_DEPTH_FORMAT, TerrainItem, TerrainTilingPrepassPipelines,
     },
     shaders::{DEFAULT_FRAGMENT_SHADER, DEFAULT_VERTEX_SHADER},
     spawn::{TerrainsToSpawn, spawn_terrains},

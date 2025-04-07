@@ -31,15 +31,15 @@ struct FragmentInfo {
     blend: Blend,
 }
 
-fn fragment_info(input: FragmentInput) -> FragmentInfo{
+fn fragment_info(input: FragmentInput) -> FragmentInfo {
     var info: FragmentInfo;
-    info.clip_position    = input.clip_position;
-    info.tile_index       = input.tile_index;
-    info.height           = input.height;
-    info.coordinate       = compute_coordinate(input.tile_index, input.tile_uv);
+    info.clip_position = input.clip_position;
+    info.tile_index = input.tile_index;
+    info.height = input.height;
+    info.coordinate = compute_coordinate(input.tile_index, input.tile_uv);
     info.world_coordinate = compute_world_coordinate(info.coordinate, input.height, input.view_distance);
-    info.tangent_space    = compute_tangent_space(info.world_coordinate);
-    info.blend            = compute_blend(info.world_coordinate.view_distance);
+    info.tangent_space = compute_tangent_space(info.world_coordinate);
+    info.blend = compute_blend(info.world_coordinate.view_distance);
     return info;
 }
 
@@ -47,15 +47,15 @@ fn fragment_output(info: ptr<function, FragmentInfo>, output: ptr<function, Frag
     let world_position = vec4<f32>(apply_height((*info).world_coordinate, (*info).height), 1.0);
 
 #ifdef LIGHTING
-    var pbr_input: PbrInput                 = pbr_input_new();
-    pbr_input.material.base_color           = color;
+    var pbr_input: PbrInput = pbr_input_new();
+    pbr_input.material.base_color = color;
     pbr_input.material.perceptual_roughness = 1.0;
-    pbr_input.material.reflectance          = vec3<f32>(0.0);
-    pbr_input.frag_coord                    = (*info).clip_position;
-    pbr_input.world_position                = world_position;
-    pbr_input.world_normal                  = (*info).world_coordinate.normal;
-    pbr_input.N                             = normalize((*info).world_coordinate.normal - surface_gradient);
-    pbr_input.V                             = calculate_view(world_position, pbr_input.is_orthographic);
+    pbr_input.material.reflectance = vec3<f32>(0.0);
+    pbr_input.frag_coord = (*info).clip_position;
+    pbr_input.world_position = world_position;
+    pbr_input.world_normal = (*info).world_coordinate.normal;
+    pbr_input.N = normalize((*info).world_coordinate.normal - surface_gradient);
+    pbr_input.V = calculate_view(world_position, pbr_input.is_orthographic);
 
     (*output).color = apply_pbr_lighting(pbr_input);
 #else
@@ -86,7 +86,7 @@ fn fragment_debug(info: ptr<function, FragmentInfo>, output: ptr<function, Fragm
     // (*output).color = vec4<f32>(surface_gradient, 1.0);
 #endif
 #ifdef TEST3
-    if (high_precision((*info).world_coordinate.view_distance)) {
+    if high_precision((*info).world_coordinate.view_distance) {
         (*output).color = mix((*output).color, vec4<f32>(0.3), 0.5);
     }
 #endif
@@ -96,12 +96,12 @@ fn fragment_debug(info: ptr<function, FragmentInfo>, output: ptr<function, Fragm
 fn fragment(input: FragmentInput) -> FragmentOutput {
     var info = fragment_info(input);
 
-    let tile             = lookup_tile(info.coordinate, info.blend);
-    let mask             = sample_height_mask(tile);
-    let color            = vec4<f32>(0.5);
+    let tile = lookup_tile(info.coordinate, info.blend);
+    let mask = sample_height_mask(tile);
+    let color = vec4<f32>(0.5);
     let surface_gradient = sample_surface_gradient(tile, info.tangent_space);
 
-    if (mask) { discard; }
+    if mask { discard; }
 
     var output: FragmentOutput;
     fragment_output(&info, &output, color, surface_gradient);

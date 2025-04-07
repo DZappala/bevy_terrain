@@ -34,8 +34,10 @@ pub struct TerrainDebugPlugin;
 
 impl Plugin for TerrainDebugPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(MetalCapturePlugin)
-            .init_resource::<DebugTerrain>()
+        #[cfg(feature = "metal_capture")]
+        app.add_plugins(MetalCapturePlugin);
+
+        app.init_resource::<DebugTerrain>()
             .init_resource::<LoadingImages>()
             .add_systems(Startup, (debug_lighting, debug_window))
             .add_systems(

@@ -2,45 +2,33 @@ use crate::{
     formats::TiffLoader,
     preprocess::{MipPipelines, MipPrepass},
     render::{
-        GpuTerrain, GpuTerrainView,
-        terrain_pass::{
-            DepthCopyPipeline, TerrainItem, TerrainPass, extract_terrain_phases,
-            prepare_terrain_depth_textures,
-        },
-        tiling_prepass::{
-            TerrainTilingPrepassPipelines, TilingPrepass, TilingPrepassItem, queue_tiling_prepass,
-        },
+        DepthCopyPipeline, GpuTerrain, GpuTerrainView, TerrainItem, TerrainPass,
+        TerrainTilingPrepassPipelines, TilingPrepass, TilingPrepassItem, extract_terrain_phases,
+        prepare_terrain_depth_textures, queue_tiling_prepass,
     },
     shaders::{InternalShaders, load_terrain_shaders},
-    shaders::{InternalShaders, load_terrain_shaders},
-    terrain::TerrainComponents,
     terrain::{TerrainComponents, TerrainConfig},
     terrain_data::{
         AttachmentLabel, GpuTileAtlas, TileAtlas, TileTree, finish_loading, start_loading,
-    },
-    terrain_data::{
-        DepthCopyPipeline, GpuTerrain, GpuTerrainView, GpuTileAtlas, TerrainItem, TerrainPass,
-        TerrainTilingPrepassPipelines, TileAtlas, TileTree, TilingPrepass, TilingPrepassItem,
-        attachment::AttachmentLabel,
-        extract_terrain_phases, prepare_terrain_depth_textures, queue_tiling_prepass,
-        tile_loader::{finish_loading, start_loading},
     },
     terrain_view::TerrainViewComponents,
 };
 use bevy::{
     core_pipeline::core_3d::graph::{Core3d, Node3d},
-    prelude::*,
+    prelude::{
+        App, AssetApp, ExtractSchedule, IntoScheduleConfigs, Plugin, PostUpdate, Resource,
+        ToString, TransformSystem, Vec, World, vec,
+    },
     render::{
         Render, RenderApp, RenderSet,
         graph::CameraDriverLabel,
         render_graph::{RenderGraph, RenderGraphApp, ViewNodeRunner},
         render_phase::{DrawFunctions, ViewSortedRenderPhases, sort_phase_system},
-        render_resource::*,
-        view::{VisibilitySystems, check_visibility},
+        render_resource::SpecializedComputePipelines,
     },
 };
 use bevy_common_assets::ron::RonAssetPlugin;
-use big_space::prelude::*;
+use big_space::prelude::BigSpacePlugin;
 
 #[derive(Resource)]
 pub struct TerrainSettings {

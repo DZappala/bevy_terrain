@@ -6,18 +6,11 @@ use crate::{
 };
 use bevy_math::IVec2;
 use bevy_terrain::math::TileCoordinate;
-use gdal::{
-    Metadata,
-    raster::{Buffer, GdalType},
-};
+use gdal::raster::{Buffer, GdalType};
 use itertools::{Itertools, iproduct};
 use num::NumCast;
-use rayon::prelude::*;
-use std::{
-    collections::HashMap,
-    io::Write,
-    sync::{Arc, Mutex},
-};
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use std::collections::HashMap;
 
 pub fn split_and_stitch<T: Copy + GdalType + PartialEq + NumCast>(
     faces: HashMap<u32, FaceInfo>,
