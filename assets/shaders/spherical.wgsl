@@ -28,26 +28,23 @@ fn sample_albedo(tile: AtlasTile) -> vec4<f32> {
 }
 
 fn color_earth(tile: AtlasTile) -> vec4<f32> {
-   let height = sample_height(tile) / terrain.height_scale;
-   let normalized_height = (height - terrain.min_height) / (terrain.max_height - terrain.min_height);
+    let height = sample_height(tile);
 
-    if (normalized_height < 0.0) {
-        return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(mix(0.0, 0.075, pow(-normalized_height, 0.25)), 0.5), 0.0);
+    if height < 0.0 {
+        return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(mix(0.0, 0.075, pow(height / terrain.min_height, 0.25)), 0.5), 0.0);
     } else {
-        return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(mix(0.09, 0.6, pow(normalized_height * 1.4, 1.0)), 0.5), 0.0);
+        return sample_albedo(tile);
+//        return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(mix(0.09, 0.6, pow(height / terrain.max_height * 1.4, 1.0)), 0.5), 0.0);
     }
 }
 
 fn color_dataset(tile: AtlasTile) -> vec4<f32> {
-    let height = sample_height(tile) / terrain.height_scale;
-    let normalized_height = (height - terrain.min_height) / (terrain.max_height - terrain.min_height);
+    let height = sample_height(tile);
 
-    return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(normalized_height, 0.5), 0.0);
+    return textureSampleLevel(gradient, gradient_sampler, vec2<f32>(inverse_mix(terrain.min_height, terrain.max_height, height), 0.5), 0.0);
 }
 
 fn sample_color(tile: AtlasTile) -> vec4<f32> {
-    let height = sample_height(tile) / terrain.height_scale;
-
     var color: vec4<f32>;
     switch (gradient_info.mode) {
         case 0u: { color = color_dataset(tile); }
@@ -55,7 +52,7 @@ fn sample_color(tile: AtlasTile) -> vec4<f32> {
         case 2u: { color = sample_albedo(tile); }
         case 3u: {
             color = sample_albedo(tile);
-            if (color.a == 0) {
+            if color.a == 0 {
                 color = vec4<f32>(0.5);
             }
         }
@@ -76,13 +73,15 @@ fn fragment(input: FragmentInput) -> FragmentOutput {
 
     let tile = lookup_tile(info.coordinate, info.blend);
     let mask = sample_height_mask(tile);
-    var color= sample_color(tile);
+    var color = sample_color(tile);
     var surface_gradient = sample_surface_gradient(tile, info.tangent_space);
 
     if mask { discard; }
 
 //    color = vec4(vec3(0.3), 1.0);
-//    color = slope_gradient(info.world_coordinate.normal, surface_gradient);
+    // color = slope_gradient(info.world_coordinate.normal, surface_gradient);
+
+//    if (distance(info.world_coordinate.position, bevy_terrain::bindings::view.world_position) > terrain.scale.y / 2.0 * 0.987) { color = vec4(1.0, 0.0, 0.0, 1.0); }
 
     var output: FragmentOutput;
 #ifdef LIGHTING
@@ -91,10 +90,10 @@ fn fragment(input: FragmentInput) -> FragmentOutput {
     output.color = color;
 #endif
 
-#ifdef TEST3
+#ifdef TEST1
     fragment_output(&info, &output, color, surface_gradient);
 #endif
 
-    fragment_debug(&info, &output, input, tile, surface_gradient);
+    fragment_debug(&info, &output, tile, surface_gradient);
     return output;
 }

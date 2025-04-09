@@ -14,8 +14,6 @@ use bevy::{
 mod approximation_debug;
 mod camera;
 
-mod approximation_debug;
-mod camera;
 mod orbital_camera;
 
 pub(crate) use self::{approximation_debug::*, camera::*, orbital_camera::*};

@@ -24,23 +24,12 @@ impl Material for CustomMaterial {
 }
 
 fn main() {
-    // std::thread::sleep(std::time::Duration::from_secs(1));
-
     App::new()
         .add_plugins((
-            DefaultPlugins
-                // .set(WindowPlugin {
-                //     primary_window: Some(Window {
-                //         mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
-                //         ..default()
-                //     }),
-                //     ..default()
-                // })
-                .build()
-                .disable::<TransformPlugin>(),
+            DefaultPlugins.build().disable::<TransformPlugin>(),
             TerrainPlugin,
             TerrainMaterialPlugin::<CustomMaterial>::default(),
-            TerrainDebugPlugin, // enable debug settings and controls
+            TerrainDebugPlugin,
             TerrainPickingPlugin,
         ))
         .insert_resource(TerrainSettings::new(vec!["albedo"]))
@@ -83,28 +72,14 @@ fn initialize(
 
     commands.spawn_terrain(
         asset_server.load("terrains/earth/config.tc.ron"),
-        TerrainViewConfig {
-            tree_size: 16,
-            geometry_tile_count: 1000000,
-            refinement_count: 30,
-            grid_size: 16,
-            morph_range: 0.2,
-            blend_range: 0.2,
-            morph_distance: 32.0,
-            blend_distance: 8.0,
-            subdivision_tolerance: 0.1,
-            load_tolerance: 0.2,
-            precision_distance: 0.001,
-            view_lod: 10,
-            order: 0,
-        },
+        TerrainViewConfig::default(),
         CustomMaterial {
             gradient: gradient1.clone(),
-            gradient_info: GradientInfo { mode: 2 },
+            gradient_info: GradientInfo { mode: 1 },
         },
         view,
     );
-
+    //
     // commands.spawn_terrain(
     //     asset_server.load("terrains/los/config.tc.ron"),
     //     TerrainViewConfig {
@@ -119,20 +94,7 @@ fn initialize(
     // );
     //
     // commands.spawn_terrain(
-    //     asset_server.load("/Volumes/ExternalSSD/tiles/swiss/config.tc.ron"), //"terrains/swiss/config.tc.ron"),
-    //     TerrainViewConfig {
-    //         order: 1,
-    //         ..default()
-    //     },
-    //     CustomMaterial {
-    //         gradient: gradient1.clone(),
-    //         gradient_info: GradientInfo { mode: 1 },
-    //     },
-    //     view,
-    // );
-    //
-    // commands.spawn_terrain(
-    //     asset_server.load("/Volumes/ExternalSSD/tiles/sas/config.tc.ron"),
+    //     asset_server.load("terrains/npd/config.tc.ron"),
     //     TerrainViewConfig {
     //         order: 2,
     //         ..default()
@@ -143,19 +105,9 @@ fn initialize(
     //     },
     //     view,
     // );
-
-    // commands.spawn_terrain(
-    //     asset_server.load("/Volumes/ExternalSSD/tiles/earth/config.tc.ron"),
-    //     TerrainViewConfig::default(),
-    //     CustomMaterial {
-    //         gradient: gradient1.clone(),
-    //         gradient_info: GradientInfo { mode: 1 },
-    //     },
-    //     view,
-    // );
     //
     // commands.spawn_terrain(
-    //     asset_server.load("/Volumes/ExternalSSD/tiles/scope/config.tc.ron"),
+    //     asset_server.load("terrains/utsira/config.tc.ron"),
     //     TerrainViewConfig {
     //         order: 1,
     //         ..default()
@@ -166,17 +118,45 @@ fn initialize(
     //     },
     //     view,
     // );
-
+    //
     // commands.spawn_terrain(
-    //     asset_server.load("/Volumes/ExternalSSD/tiles/hartenstein/config.tc.ron"),
+    //     asset_server.load("terrains/sas/config.tc.ron"),
+    //     TerrainViewConfig {
+    //         order: 2,
+    //         ..default()
+    //     },
+    //     CustomMaterial {
+    //         gradient: gradient2.clone(),
+    //         gradient_info: GradientInfo { mode: 3 },
+    //     },
+    //     view,
+    // );
+    //
+    //
+    //
+    // commands.spawn_terrain(
+    //     asset_server.load("terrains/swiss/config.tc.ron"),
     //     TerrainViewConfig {
     //         order: 1,
     //         ..default()
     //     },
     //     CustomMaterial {
-    //         gradient: gradient2.clone(),
-    //         gradient_info: GradientInfo { mode: 2 },
+    //         gradient: gradient1.clone(),
+    //         gradient_info: GradientInfo { mode: 1 },
     //     },
     //     view,
     // );
+    //
+    // // commands.spawn_terrain(
+    // //     asset_server.load("/Volumes/ExternalSSD/tiles/hartenstein/config.tc.ron"),
+    // //     TerrainViewConfig {
+    // //         order: 1,
+    // //         ..default()
+    // //     },
+    // //     CustomMaterial {
+    // //         gradient: gradient2.clone(),
+    // //         gradient_info: GradientInfo { mode: 2 },
+    // //     },
+    // //     view,
+    // // );
 }

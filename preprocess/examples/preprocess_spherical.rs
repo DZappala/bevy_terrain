@@ -14,8 +14,8 @@ fn main() {
         }
     }
 
-    let hartenstein_dtm_path = "/Volumes/ExternalSSD/saxony_data/hartenstein_dtm";
-    let hartenstein_dop_path = "/Volumes/ExternalSSD/saxony_data/hartenstein_dop";
+    let _hartenstein_dtm_path = "/Volumes/ExternalSSD/saxony_data/hartenstein_dtm";
+    let _hartenstein_dop_path = "/Volumes/ExternalSSD/saxony_data/hartenstein_dop";
 
     // let args = Cli {
     //     src_path: vec!["/Volumes/ExternalSSD/gebco_2024/gebco_original.tif".into()],

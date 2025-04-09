@@ -89,7 +89,7 @@ pub fn compute_transforms<'a>(
     let mut total_area = 0.0;
 
     for face in 0..6 {
-        let mut transformer = CustomTransformer::new(src_dataset, face, None)?;
+        let mut transformer = CustomTransformer::create(src_dataset, face, None)?;
 
         let Some(SuggestedWarpOutput {
             size,
@@ -180,7 +180,7 @@ pub fn compute_transforms<'a>(
         transform.pixel_start = pixel_start.as_ivec2();
         transform.pixel_end = pixel_end.as_ivec2();
         transform.transformer =
-            CustomTransformer::new(src_dataset, transform.face, Some(transform.geo_transform))?;
+            CustomTransformer::create(src_dataset, transform.face, Some(transform.geo_transform))?;
     }
 
     let work_portions = transforms

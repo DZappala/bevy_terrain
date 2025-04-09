@@ -8,14 +8,15 @@ use crate::{
 };
 use bevy::{
     platform_support::collections::HashMap,
-    prelude::*,
+    prelude::{Added, Component, Entity, Query, Res, ResMut, Vec, default},
     render::{
         Extract, MainWorld,
-        render_resource::*,
+        render_resource::{
+            ComputePass, MapMode, PipelineCache, SpecializedComputePipelines, TexelCopyBufferLayout,
+        },
         renderer::{RenderDevice, RenderQueue},
     },
     tasks::{AsyncComputeTaskPool, Task},
-    utils::HashMap,
 };
 use std::{iter, mem};
 
@@ -168,8 +169,6 @@ impl GpuTileAtlas {
                     },
                 );
             }
-
-            gpu_tile_atlas.upload_tiles(&queue);
         }
     }
 
@@ -245,61 +244,6 @@ impl GpuTileAtlas {
                             }
 
                             AttachmentTileWithData {
-                                atlas_index: tile.atlas_index,
-                                label: tile.label,
-                                data: AttachmentData::from_bytes(&data, buffer_info.format),
-                            }
-                        })
-                    },
-                ));
-        }
-    }
-
-    fn start_downloading_tiles(&mut self) {
-        for attachment in self.attachments.values_mut() {
-            let buffer_info = attachment.buffer_info;
-            let download_buffers = mem::take(&mut attachment.download_buffers);
-            let atlas_write_slots = mem::take(&mut attachment.atlas_write_slots);
-
-            self.download_tiles
-                .extend(iter::zip(atlas_write_slots, download_buffers).map(
-                    |(tile, download_buffer)| {
-                        AsyncComputeTaskPool::get().spawn(async move {
-                            let (tx, rx) = async_channel::bounded(1);
-
-                            let buffer_slice = download_buffer.slice(..);
-
-                            buffer_slice.map_async(MapMode::Read, move |_| {
-                                tx.try_send(()).unwrap();
-                            });
-
-                            rx.recv().await.unwrap();
-
-                            let mut data = buffer_slice.get_mapped_range().to_vec();
-
-                            download_buffer.unmap();
-                            drop(download_buffer);
-
-                            if data.len() != buffer_info.actual_tile_size as usize {
-                                let actual_side_size = buffer_info.actual_side_size as usize;
-                                let aligned_side_size = buffer_info.aligned_side_size as usize;
-
-                                let mut take_offset = aligned_side_size;
-                                let mut place_offset = actual_side_size;
-
-                                for _ in 1..buffer_info.texture_size {
-                                    data.copy_within(
-                                        take_offset..take_offset + aligned_side_size,
-                                        place_offset,
-                                    );
-                                    take_offset += aligned_side_size;
-                                    place_offset += actual_side_size;
-                                }
-
-                                data.truncate(buffer_info.actual_tile_size as usize);
-                            }
-
-                            AtlasTileAttachmentWithData {
                                 atlas_index: tile.atlas_index,
                                 label: tile.label,
                                 data: AttachmentData::from_bytes(&data, buffer_info.format),

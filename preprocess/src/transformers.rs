@@ -195,7 +195,7 @@ pub struct CustomTransformer {
 }
 
 impl CustomTransformer {
-    pub fn new(
+    pub fn create(
         src: &Dataset,
         face: u32,
         dst_geo_transform: Option<GeoTransform>,

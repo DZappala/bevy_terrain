@@ -8,7 +8,7 @@ use bevy::{
     },
 };
 use bytemuck::cast_slice;
-use std::{any::Any, io::Cursor, panic::catch_unwind};
+use std::io::Cursor;
 use tiff::{
     ColorType,
     decoder::{Decoder, DecodingResult},

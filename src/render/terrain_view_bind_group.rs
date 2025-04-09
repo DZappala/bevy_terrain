@@ -5,13 +5,12 @@ use crate::{
     terrain_view::TerrainViewComponents,
 };
 
-use crate::terrain_data::tile_tree::TileTreeEntry;
 use bevy::{
     ecs::{
         query::ROQueryItem,
         system::{StaticSystemParam, SystemParamItem, lifetimeless::SRes},
     },
-    prelude::*,
+    prelude::{Handle, Res, ResMut, UVec2, Vec, Vec3, Vec4},
     render::{
         Extract,
         render_phase::{PhaseItem, RenderCommand, RenderCommandResult, TrackedRenderPass},
@@ -20,7 +19,6 @@ use bevy::{
         storage::ShaderStorageBuffer,
         sync_world::MainEntity,
     },
-    utils::HashMap,
 };
 
 #[derive(AsBindGroup)]
@@ -210,7 +208,6 @@ impl GpuTerrainView {
             terrain_view_bind_group: None,
         }
     }
-}
 
     pub(crate) fn initialize(
         device: Res<RenderDevice>,
