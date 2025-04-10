@@ -1,7 +1,7 @@
 use bevy::{
     asset::{AssetLoader, LoadContext, io::Reader},
     image::ImageLoaderError,
-    prelude::*,
+    prelude::{Image, Result, Vec},
     render::{
         render_asset::RenderAssetUsages,
         render_resource::{Extent3d, TextureDimension, TextureFormat},

@@ -6,7 +6,11 @@ use bevy::{
     asset::RenderAssetUsages,
     core_pipeline::core_3d::graph::Core3d,
     ecs::{component::HookContext, query::QueryItem, world::DeferredWorld},
-    prelude::*,
+    prelude::{
+        App, AssetId, Assets, Camera, Component, DirectAssetAccessExt, FromWorld, GlobalTransform,
+        Handle, IVec3, IntoScheduleConfigs, Mat4, Plugin, PostUpdate, Query, ResMut, Resource,
+        Result, TransformSystem, Trigger, Vec, Vec2, Vec3, Window, With, World, vec,
+    },
     render::{
         RenderApp,
         extract_component::{ExtractComponent, ExtractComponentPlugin},
@@ -26,7 +30,7 @@ use bevy::{
     },
     window::PrimaryWindow,
 };
-use big_space::prelude::*;
+use big_space::prelude::GridCell;
 
 pub fn picking_system(
     mut buffers: ResMut<Assets<ShaderStorageBuffer>>,

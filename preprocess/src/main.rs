@@ -1,4 +1,4 @@
-use bevy_terrain_preprocess::prelude::*;
+use bevy_terrain_preprocess::prelude::{Cli, PreprocessContext, preprocess};
 use clap::Parser;
 use std::env::set_var;
 

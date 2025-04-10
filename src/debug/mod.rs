@@ -274,11 +274,11 @@ pub fn update_terrain_parameter(
     mut tile_atlases: Query<&mut TileAtlas>,
 ) {
     for mut tile_atlas in tile_atlases.iter_mut() {
-        if input.pressed(KeyCode::ShiftLeft) && input.just_pressed(KeyCode::Equal) {
+        if input.pressed(KeyCode::ShiftLeft) && input.pressed(KeyCode::Equal) {
             tile_atlas.height_scale += 0.1;
             info!("Heightscale: {}", tile_atlas.height_scale);
         }
-        if input.just_pressed(KeyCode::Minus) {
+        if input.pressed(KeyCode::Minus) {
             tile_atlas.height_scale -= 0.1;
             info!("Heightscale: {}", tile_atlas.height_scale);
         }
@@ -292,29 +292,29 @@ pub fn update_view_parameter(
     for tile_tree in tile_trees.values_mut() {
         let scale = tile_tree.shape.scale_f32();
 
-        if input.just_pressed(KeyCode::KeyV) {
+        if input.pressed(KeyCode::KeyV) {
             tile_tree.blend_distance -= 0.25 * scale;
             info!("Blend distance: {}.", tile_tree.blend_distance / scale);
         }
-        if input.just_pressed(KeyCode::KeyB) {
+        if input.pressed(KeyCode::KeyB) {
             tile_tree.blend_distance += 0.25 * scale;
             info!("Blend distance: {}.", tile_tree.blend_distance / scale);
         }
 
-        if input.just_pressed(KeyCode::KeyN) {
+        if input.pressed(KeyCode::KeyN) {
             tile_tree.morph_distance -= 0.25 * scale;
             info!("Morph distance: {}.", tile_tree.morph_distance / scale);
         }
-        if input.just_pressed(KeyCode::KeyM) {
+        if input.pressed(KeyCode::KeyM) {
             tile_tree.morph_distance += 0.25 * scale;
             info!("Morth distance: {}.", tile_tree.morph_distance / scale);
         }
 
-        if input.just_pressed(KeyCode::KeyG) && tile_tree.grid_size > 2 {
+        if input.pressed(KeyCode::KeyG) && tile_tree.grid_size > 2 {
             tile_tree.grid_size -= 2;
             info!("Grid size: {}.", tile_tree.grid_size);
         }
-        if input.just_pressed(KeyCode::KeyH) {
+        if input.pressed(KeyCode::KeyH) {
             tile_tree.grid_size += 2;
             info!("Grid size {}.", tile_tree.grid_size);
         }

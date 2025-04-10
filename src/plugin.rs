@@ -59,6 +59,13 @@ impl TerrainSettings {
             atlas_size: 1028,
         }
     }
+    
+    pub fn with_atlas_size(&self, arg: i32) -> Self {
+        Self {
+            attachments: self.attachments.clone(),
+            atlas_size: arg as u32,
+        }
+    }
 }
 
 /// The plugin for the terrain renderer.

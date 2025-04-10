@@ -9,12 +9,18 @@ use bevy::{
         system::{SystemParamItem, lifetimeless::SRes},
     },
     math::Affine3,
-    prelude::*,
+    prelude::{
+        Added, Entity, GlobalTransform, Handle, Image, Query, Res, ResMut, Vec3, Vec4, default,
+    },
     render::{
         Extract,
         render_asset::RenderAssets,
         render_phase::{PhaseItem, RenderCommand, RenderCommandResult, TrackedRenderPass},
-        render_resource::*,
+        render_resource::{
+            AsBindGroup, BindGroup, BindGroupEntries, Buffer, BufferUsages,
+            FilterMode, Sampler, SamplerDescriptor, ShaderType, TextureUsages, TextureView,
+            TextureViewDescriptor,
+        },
         renderer::RenderDevice,
         storage::{GpuShaderStorageBuffer, ShaderStorageBuffer},
         texture::FallbackImage,

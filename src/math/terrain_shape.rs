@@ -1,5 +1,5 @@
 use crate::math::spheroid::project_point_spheroid;
-use bevy::{math::DVec3, prelude::*};
+use bevy::{math::DVec3, prelude::Transform};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]

@@ -4,7 +4,7 @@ use crate::math::{
 };
 use bevy::{
     math::{DVec2, DVec3},
-    prelude::*,
+    prelude::{IVec2, Result, Vec2, Vec3Swizzles, format},
     render::render_resource::ShaderType,
 };
 use serde::{Deserialize, Serialize};

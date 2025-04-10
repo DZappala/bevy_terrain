@@ -9,7 +9,7 @@ use gdal::raster::{Buffer, GdalType};
 use itertools::izip;
 use ndarray::Axis;
 use num::NumCast;
-use rayon::prelude::*;
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 fn stitch_corners<T: Copy + GdalType + NumCast>(
     tile_dataset: &Dataset,

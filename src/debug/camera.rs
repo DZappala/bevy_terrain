@@ -1,7 +1,17 @@
 #[cfg(feature = "high_precision")]
-use big_space::{prelude::*, world_query::GridTransformItem};
+use big_space::{
+    prelude::{FloatingOrigin, GridTransform, Grids},
+    world_query::GridTransformItem,
+};
 
-use bevy::{input::mouse::MouseMotion, math::DVec3, prelude::*};
+use bevy::{
+    input::mouse::MouseMotion,
+    math::DVec3,
+    prelude::{
+        ButtonInput, Camera3d, Component, Entity, EulerRot, EventReader, KeyCode, Quat, Query,
+        Reflect, Res, Time, Vec2, default, info,
+    },
+};
 
 #[derive(Clone, Debug, Reflect, Component)]
 #[require(Camera3d, FloatingOrigin = FloatingOrigin)]

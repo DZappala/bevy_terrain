@@ -3,7 +3,11 @@ use crate::{
     terrain_data::TileTree,
     terrain_view::TerrainViewComponents,
 };
-use bevy::{color::palettes::basic, math::DVec2, prelude::*};
+use bevy::{
+    color::palettes::basic,
+    math::DVec2,
+    prelude::{ButtonInput, Color, Gizmos, KeyCode, Local, Res, info},
+};
 use itertools::Itertools;
 
 const DEBUG_SCALE: f32 = 1.0 / (1 << 5) as f32;

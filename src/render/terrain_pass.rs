@@ -4,7 +4,10 @@ use bevy::{
         core_3d::CORE_3D_DEPTH_FORMAT, fullscreen_vertex_shader::fullscreen_shader_vertex_state,
     },
     ecs::query::QueryItem,
-    prelude::*,
+    prelude::{
+        Camera, Camera3d, Commands, Component, DirectAssetAccessExt, Entity, FromWorld, Msaa,
+        Query, Res, ResMut, Resource, Result, Vec, With, World, default, vec,
+    },
     render::{
         Extract,
         camera::ExtractedCamera,
@@ -13,7 +16,14 @@ use bevy::{
             CachedRenderPipelinePhaseItem, DrawFunctionId, PhaseItem, PhaseItemExtraIndex,
             SortedPhaseItem, TrackedRenderPass, ViewSortedRenderPhases,
         },
-        render_resource::{binding_types::texture_depth_2d_multisampled, *},
+        render_resource::{
+            BindGroupEntries, BindGroupLayout, BindGroupLayoutEntries, CachedRenderPipelineId,
+            CommandEncoderDescriptor, CompareFunction, DepthStencilState, Extent3d, FragmentState,
+            LoadOp, MultisampleState, Operations, PipelineCache, RenderPassDepthStencilAttachment,
+            RenderPassDescriptor, RenderPipelineDescriptor, ShaderStages, StoreOp, Texture,
+            TextureAspect, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+            TextureView, TextureViewDescriptor, binding_types::texture_depth_2d_multisampled,
+        },
         renderer::{RenderContext, RenderDevice},
         sync_world::MainEntity,
         texture::{CachedTexture, TextureCache},

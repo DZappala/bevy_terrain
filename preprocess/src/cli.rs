@@ -2,7 +2,7 @@ use crate::{
     dataset::{PreprocessDataType, PreprocessNoData},
     gdal_extension::ProgressCallback,
 };
-use bevy_terrain::prelude::*;
+use bevy_terrain::prelude::{AttachmentFormat, AttachmentLabel};
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::path::PathBuf;

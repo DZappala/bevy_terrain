@@ -3,10 +3,13 @@ use bevy::{
     color::palettes::basic,
     input::{ButtonInput, mouse::AccumulatedMouseMotion},
     math::{DQuat, DVec2, DVec3, Mat4, Vec2},
-    prelude::*,
+    prelude::{
+        Camera3d, Component, Entity, FloatExt, Gizmos, KeyCode, MouseButton, Query, Res, Time,
+        Transform, Window, With,
+    },
     window::{CursorGrabMode, PrimaryWindow},
 };
-use big_space::prelude::*;
+use big_space::prelude::{FloatingOrigin, GridCell, Grids};
 
 fn ray_sphere_intersection(
     ray_origin: DVec3,

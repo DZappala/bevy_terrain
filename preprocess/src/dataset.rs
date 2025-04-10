@@ -1,12 +1,11 @@
 use crate::{
-    AttachmentFormat,
     cli::Cli,
     result::{PreprocessError, PreprocessResult},
 };
 use bevy_math::{IVec2, U64Vec2};
 use bevy_terrain::{
     math::TileCoordinate,
-    terrain_data::{AttachmentConfig, AttachmentLabel},
+    terrain_data::{AttachmentConfig, AttachmentFormat, AttachmentLabel},
 };
 use gdal::{
     Dataset, DatasetOptions, DriverManager, GdalOpenFlags, GeoTransform,
