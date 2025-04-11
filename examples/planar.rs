@@ -13,8 +13,7 @@ use bevy_terrain::prelude::{
     TerrainPlugin, TerrainSettings, TerrainViewConfig,
 };
 
-// View distance for planar terrain
-const VIEW_DISTANCE: f64 = 10000.0;
+const VIEW_DISTANCE: f64 = 100000.;
 
 #[derive(ShaderType, Clone)]
 struct GradientInfo {
@@ -45,7 +44,7 @@ fn main() {
             TerrainDebugPlugin,
             TerrainPickingPlugin,
         ))
-        .insert_resource(TerrainSettings::new(vec!["albedo"]).with_atlas_size(128))
+        .insert_resource(TerrainSettings::new(vec!["albedo"]))
         .add_systems(Startup, initialize)
         .run();
 }
@@ -75,35 +74,17 @@ fn initialize(
     commands.spawn_big_space(Grid::default(), |root| {
         view = root
             .spawn_spatial((
-                // Position the camera higher above the terrain with a wider viewing angle
-                Transform::from_translation(Vec3::new(0.0, VIEW_DISTANCE as f32 * 0.5, 0.0))
-                    .looking_to(Vec3::NEG_Y, Vec3::Z),
-                DebugCameraController::new(VIEW_DISTANCE * 0.25),
+                Transform::from_translation(Vec3::new(0.0, VIEW_DISTANCE as f32, 0.0))
+                    .looking_to(Vec3::NEG_Y, Vec3::NEG_Z),
+                DebugCameraController::new(VIEW_DISTANCE),
                 OrbitalCameraController::default(),
             ))
             .id();
     });
 
-    // Create a view config with a wider tree size to load more tiles
-    let view_config = TerrainViewConfig {
-        tree_size: 16,           // Increase tree size to load more tiles
-        geometry_tile_count: 33, // Increase geometry tiles
-        view_lod: 0,             // Start at highest LOD
-        grid_size: 64,           // Grid size for tile mesh
-        precision_distance: 1.0,  // Distance for precision
-        morph_distance: 1.5,     // Morph distance between LODs
-        blend_distance: 2.0,     // Blend distance between LODs
-        morph_range: 0.3,        // Range for morphing
-        blend_range: 0.3,        // Range for blending
-        subdivision_tolerance: 0.1, // Tolerance for subdivision
-        load_tolerance: 0.5,     // Tolerance for loading
-        refinement_count: 4,     // Number of refinements
-        order: 0,                // Rendering order
-    };
-
     commands.spawn_terrain(
         asset_server.load("terrains/earth/config.tc.ron"),
-        view_config,
+        TerrainViewConfig::default(),
         CustomMaterial {
             gradient: gradient1.clone(),
             gradient_info: GradientInfo { mode: 1 },

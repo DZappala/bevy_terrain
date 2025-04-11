@@ -140,9 +140,10 @@ pub fn warp(
 
 pub fn fill_no_data(src: &Dataset, fill_radius: f64) -> PreprocessResult<()> {
     for raster_band in src.rasterbands() {
+        let raster_band = raster_band?;
         unsafe {
             let rv = GDALFillNodata(
-                raster_band?.c_rasterband(),
+                raster_band.c_rasterband(),
                 ptr::null_mut(),
                 fill_radius,
                 0,

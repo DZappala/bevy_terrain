@@ -171,6 +171,11 @@ impl TileTree {
                 Readback::buffer(approximate_height_buffer.clone_weak()),
             ))
             .observe(Self::approximate_height_readback);
+        
+        let planar_distancce_scale = match config.shape {
+            TerrainShape::Plane { .. } => 3.0,
+            _ => 1.0,
+        };
 
         Self {
             tree_size: view_config.tree_size,
@@ -180,7 +185,7 @@ impl TileTree {
             grid_size: view_config.grid_size,
             morph_distance: view_config.morph_distance * scale,
             blend_distance: view_config.blend_distance * scale,
-            load_distance: view_config.blend_distance * scale * (1.0 + view_config.load_tolerance),
+            load_distance: view_config.blend_distance * scale * (1.0 + view_config.load_tolerance) * planar_distancce_scale,
             subdivision_distance: view_config.morph_distance
                 * scale
                 * (1.0 + view_config.subdivision_tolerance),

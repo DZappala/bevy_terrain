@@ -14,7 +14,7 @@ use crate::{
     dataset::{PreprocessContext, clear_directory, delete_directory},
     downsample::downsample_and_stitch,
     fill_no_data::create_mask_and_fill_no_data,
-    reproject::reproject,
+    reproject::{reproject, reproject_planar},
     split::split_and_stitch,
 };
 use bevy_terrain::prelude::{AttachmentLabel, TerrainConfig, TerrainShape, TileCoordinate};
@@ -33,7 +33,7 @@ pub mod prelude {
     };
 }
 
-fn preprocess_gen<T: Copy + GdalType + PartialEq + NumCast>(
+fn preprocess_gen<T: Copy + GdalType + PartialEq + NumCast + Send + Sync>(
     src_dataset: Dataset,
     context: &mut PreprocessContext,
 ) {
@@ -45,8 +45,20 @@ fn preprocess_gen<T: Copy + GdalType + PartialEq + NumCast>(
 
     let start_preprocessing = Instant::now();
 
+    // let is_planar = matches!(context.shape, Some(TerrainShape::Plane { .. }));
+    let is_planar = true;
+    
     let progress_bar = PreprocessBar::new("Reprojecting".to_string());
-    let faces = reproject::<T>(src_dataset, context, Some(progress_bar.callback())).unwrap();
+    
+    // Handle planar differently than spherical
+    let faces = if is_planar {
+        // For planar, just work with face 0 but ensure we generate a grid of tiles
+       reproject_planar::<T>(src_dataset, context, Some(progress_bar.callback())).unwrap()
+    } else {
+        // Original spherical reprojection
+        reproject::<T>(src_dataset, context, Some(progress_bar.callback())).unwrap()
+    };
+    
     progress_bar.finish();
 
     let progress_bar = PreprocessBar::new("Splitting".to_string());
@@ -97,8 +109,9 @@ fn save_terrain_config(tiles: Vec<TileCoordinate>, context: &PreprocessContext) 
 
     // config.shape = TerrainShape::WGS84;
     config.shape = TerrainShape::Plane {
-        side_length: 1000.0,
+        side_length: 86400.,
     };
+
     config.path = context.terrain_path.to_str().unwrap().to_string();
     config.add_attachment(context.attachment_label.clone(), context.attachment.clone());
 

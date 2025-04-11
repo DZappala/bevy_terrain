@@ -4,7 +4,7 @@ use crate::{
     result::{PreprocessError, PreprocessResult},
 };
 use bevy_terrain::math::TileCoordinate;
-use gdal::raster::{Buffer, GdalDataType, GdalType};
+use gdal::raster::{Buffer, GdalDataType, GdalType, RasterBand};
 use itertools::{Itertools, izip};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
@@ -46,6 +46,7 @@ fn create_mask_and_fill_no_data_gen<T: GdalType + BitMask>(
     tiles.par_iter().try_for_each(|&tile| {
         let src_dataset = update_tile_dataset(tile, context)?;
 
+        // Collect all masks first before doing any other operations
         let masks: Vec<Buffer<u8>> = src_dataset
             .rasterbands()
             .map(|src_raster| {
@@ -57,10 +58,17 @@ fn create_mask_and_fill_no_data_gen<T: GdalType + BitMask>(
             })
             .try_collect()?;
 
+        // Now fill no data
         fill_no_data(&src_dataset, context.fill_radius as f64)?;
 
-        for (mask, band) in izip!(masks, src_dataset.rasterbands()) {
-            let mut band = band?;
+        // Collect all bands into a vector to avoid iterator issues
+        let bands: Vec<RasterBand> = src_dataset
+            .rasterbands()
+            .map(|band_result| band_result.map_err(PreprocessError::Gdal))
+            .try_collect()?;
+        
+        // Process each band and mask together
+        for (mask, mut band) in izip!(masks, bands) {
             let mut band_data: Buffer<f32> = band.read_band_as()?;
 
             for (&mask, value) in mask.data().iter().zip(band_data.data_mut()) {
