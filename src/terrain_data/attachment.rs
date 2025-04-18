@@ -69,8 +69,8 @@ impl FromStr for AttachmentFormat {
 impl AttachmentFormat {
     pub(crate) fn render_format(self) -> TextureFormat {
         match self {
-            AttachmentFormat::Rgb8U => TextureFormat::Rgba8UnormSrgb,
-            AttachmentFormat::Rgba8U => TextureFormat::Rgba8UnormSrgb,
+            AttachmentFormat::Rgb8U => TextureFormat::Rgba8Unorm,
+            AttachmentFormat::Rgba8U => TextureFormat::Rgba8Unorm,
             AttachmentFormat::R16U => TextureFormat::R16Unorm,
             AttachmentFormat::R16I => TextureFormat::R16Snorm,
             AttachmentFormat::Rg16U => TextureFormat::Rg16Unorm,
