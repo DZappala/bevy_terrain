@@ -10,19 +10,11 @@ use crate::{
     terrain_data::GpuTileAtlas,
     terrain_view::TerrainViewComponents,
 };
-use bevy::pbr::ExtractMeshesSet;
 use bevy::{
-    pbr::{
-        MeshPipeline, MeshPipelineViewLayoutKey, RenderMaterialInstances, SetMaterialBindGroup,
-        SetMeshViewBindGroup,
-    },
+    pbr::{MeshPipeline, MeshPipelineViewLayoutKey, SetMaterialBindGroup, SetMeshViewBindGroup},
     prelude::*,
     render::{
-        Extract,
-        Render,
-        RenderApp,
-        RenderSet,
-        // render_asset::{RenderAssetPlugin, RenderAssets, prepare_assets},
+        Render, RenderApp, RenderSet,
         render_phase::{
             AddRenderCommand, DrawFunctions, PhaseItemExtraIndex, SetItemPipeline,
             ViewSortedRenderPhases,
@@ -30,37 +22,37 @@ use bevy::{
         render_resource::*,
         renderer::RenderDevice,
         sync_world::MainEntity,
-        // texture::GpuImage,
         view::RetainedViewEntity,
     },
 };
-use derive_more::derive::From;
 use std::{hash::Hash, marker::PhantomData};
 
-#[derive(Component, Clone, Debug, Deref, DerefMut, Reflect, PartialEq, Eq, From)]
-#[reflect(Component, Default)]
-pub struct TerrainMaterial<M: Material>(pub Handle<M>);
+// #[derive(Component, Clone, Debug, Deref, DerefMut, Reflect, PartialEq, Eq, From)]
+// #[reflect(Component, Default)]
+// pub struct TerrainMaterial<M: Material>(pub Handle<M>);
+//
+// impl<M: Material> Default for TerrainMaterial<M> {
+//     fn default() -> Self {
+//         Self(Handle::default())
+//     }
+// }
 
-impl<M: Material> Default for TerrainMaterial<M> {
-    fn default() -> Self {
-        Self(Handle::default())
-    }
-}
+pub type TerrainMaterial<M> = bevy::pbr::MeshMaterial3d<M>;
 
-fn extract_terrain_materials<M: Material>(
-    mut material_instances: ResMut<RenderMaterialInstances<M>>,
-    terrains: Extract<Query<(Entity, &ViewVisibility, &TerrainMaterial<M>)>>,
-) {
-    material_instances.clear();
-
-    for (entity, _view_visibility, material) in &terrains {
-        // Todo: fix visibility
-        // if view_visibility.get() {
-
-        material_instances.insert(entity.into(), material.id());
-        // }
-    }
-}
+// fn extract_terrain_materials<M: Material>(
+//     mut material_instances: ResMut<RenderMaterialInstances<M>>,
+//     terrains: Extract<Query<(Entity, &ViewVisibility, &TerrainMaterial<M>)>>,
+// ) {
+//     material_instances.clear();
+//
+//     for (entity, _view_visibility, material) in &terrains {
+//         // Todo: fix visibility
+//         // if view_visibility.get() {
+//
+//         material_instances.insert(entity.into(), material.id());
+//         // }
+//     }
+// }
 
 #[derive(PartialEq, Eq, Clone, Hash)]
 pub struct TerrainPipelineKey {
@@ -448,10 +440,6 @@ where
         app.sub_app_mut(RenderApp)
             .add_render_command::<TerrainItem, DrawTerrain<M>>()
             .init_resource::<SpecializedRenderPipelines<TerrainRenderPipeline<M>>>()
-            .add_systems(
-                ExtractSchedule,
-                extract_terrain_materials::<M>.after(ExtractMeshesSet),
-            )
             .add_systems(Render, queue_terrain::<M>.in_set(RenderSet::QueueMeshes));
     }
 

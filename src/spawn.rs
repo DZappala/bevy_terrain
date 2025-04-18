@@ -59,12 +59,16 @@ pub(crate) fn spawn_terrains<M: Material>(
                 let config = configs.get(config.id()).unwrap().clone();
 
                 let root = big_space.single().unwrap();
+                let terrain_material: TerrainMaterial<M> =
+                    MeshMaterial3d::<M>(materials.add(material));
 
                 let terrain = commands
                     .spawn((
                         config.shape.transform(),
                         TileAtlas::new(&config, &mut buffers, &settings),
-                        TerrainMaterial(materials.add(material)),
+                        // TerrainMaterial::<M>(mat_handle.clone()),
+                        // MeshMaterial3d::<M>(materials.add(material)),
+                        terrain_material,
                     ))
                     .id();
 
