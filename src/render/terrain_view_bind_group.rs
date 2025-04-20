@@ -21,13 +21,13 @@ use bevy::{
     },
 };
 
-#[derive(AsBindGroup)]
+#[derive(AsBindGroup, Debug)]
 pub struct IndirectBindGroup {
     #[storage(0, visibility(compute), buffer)]
     pub(crate) indirect: Buffer,
 }
 
-#[derive(AsBindGroup)]
+#[derive(AsBindGroup, Debug)]
 pub struct PrepassViewBindGroup {
     #[storage(0, visibility(compute), read_only)]
     pub(crate) terrain_view: Handle<ShaderStorageBuffer>,
@@ -43,7 +43,7 @@ pub struct PrepassViewBindGroup {
     pub(crate) state: Buffer,
 }
 
-#[derive(AsBindGroup)]
+#[derive(AsBindGroup, Debug)]
 pub struct TerrainViewBindGroup {
     // Todo: replace with updatable uniform buffer
     #[storage(0, visibility(vertex, fragment), read_only)]
@@ -138,6 +138,7 @@ impl From<&TileTree> for TerrainViewUniform {
     }
 }
 
+#[derive(Debug)]
 pub struct GpuTerrainView {
     pub(crate) order: u32,
     pub(crate) indirect_buffer: Buffer,
@@ -175,7 +176,7 @@ impl GpuTerrainView {
         let indirect = device.create_buffer(&BufferDescriptor {
             label: None,
             size: Indirect::min_size().get(),
-            usage: BufferUsages::STORAGE | BufferUsages::INDIRECT,
+            usage: BufferUsages::STORAGE | BufferUsages::INDIRECT | BufferUsages::COPY_SRC,
             mapped_at_creation: false,
         });
 

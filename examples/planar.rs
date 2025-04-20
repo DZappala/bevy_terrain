@@ -1,8 +1,10 @@
 use bevy::{
+    asset::Asset,
     prelude::{
-        App, Asset, AssetServer, Commands, DefaultPlugins, Entity, Handle, Image, Material,
-        PluginGroup, Res, ResMut, Startup, Transform, TransformPlugin, TypePath, Vec3, vec,
+        App, AssetServer, Commands, DefaultPlugins, Entity, Handle, Image, Material, PluginGroup,
+        Res, ResMut, Startup, Transform, TransformPlugin, Vec3,
     },
+    reflect::TypePath,
     render::render_resource::{
         AsBindGroup, ShaderRef, ShaderType, TextureDimension, TextureFormat,
     },
@@ -56,10 +58,18 @@ fn initialize(
     asset_server: Res<AssetServer>,
 ) {
     let gradient1 = asset_server.load("textures/gradient1.png");
-    images.load_image(&gradient1, TextureDimension::D2, TextureFormat::Rgba8Unorm);
+    images.load_image(
+        &gradient1,
+        TextureDimension::D2,
+        TextureFormat::Rgba8UnormSrgb,
+    );
 
     let gradient2 = asset_server.load("textures/gradient2.png");
-    images.load_image(&gradient2, TextureDimension::D2, TextureFormat::Rgba8Unorm);
+    images.load_image(
+        &gradient2,
+        TextureDimension::D2,
+        TextureFormat::Rgba8UnormSrgb,
+    );
 
     let mut view = Entity::PLACEHOLDER;
 

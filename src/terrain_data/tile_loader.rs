@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use crate::terrain_data::{AttachmentData, AttachmentFormat, AttachmentTile, TileAtlas};
 use bevy::{
     asset::{AssetServer, Assets, Handle},
@@ -10,6 +12,16 @@ struct LoadingTile {
     handle: Handle<Image>,
     tile: AttachmentTile,
     format: AttachmentFormat,
+}
+
+impl Debug for LoadingTile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("LoadingTile")
+            .field("handle", &self.handle)
+            .field("tile", &self.tile)
+            .field("format", &self.format)
+            .finish()
+    }
 }
 
 #[derive(Component)]
@@ -60,7 +72,6 @@ impl DefaultLoader {
                 let path = tile
                     .coordinate
                     .path(&attachment.path.join(String::from(&tile.label)));
-
                 self.loading_tiles.insert(LoadingTile {
                     handle: asset_server.load(path),
                     tile,

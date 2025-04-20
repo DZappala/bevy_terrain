@@ -5,7 +5,14 @@ use crate::{
     terrain_data::{TileAtlas, TileTree},
     terrain_view::{TerrainViewComponents, TerrainViewConfig},
 };
-use bevy::{ecs::system::SystemState, prelude::*, render::storage::ShaderStorageBuffer};
+use bevy::{
+    ecs::system::SystemState,
+    prelude::{
+        AssetServer, Assets, Commands, Entity, Handle, Material, Query, Res, ResMut, Resource, Vec,
+        With, World,
+    },
+    render::storage::ShaderStorageBuffer,
+};
 use big_space::floating_origins::BigSpace;
 
 #[derive(Clone)]
@@ -59,18 +66,11 @@ pub(crate) fn spawn_terrains<M: Material>(
                 let config = configs.get(config.id()).unwrap().clone();
 
                 let root = big_space.single().unwrap();
-                let terrain_material: TerrainMaterial<M> =
-                    MeshMaterial3d::<M>(materials.add(material));
 
-                let terrain = commands
-                    .spawn((
-                        config.shape.transform(),
-                        TileAtlas::new(&config, &mut buffers, &settings),
-                        // TerrainMaterial::<M>(mat_handle.clone()),
-                        // MeshMaterial3d::<M>(materials.add(material)),
-                        terrain_material,
-                    ))
-                    .id();
+                let tf = config.shape.transform();
+                let at = TileAtlas::new(&config, &mut buffers, &settings);
+                let mat = TerrainMaterial::<M>(materials.add(material));
+                let terrain = commands.spawn((tf, at, mat)).id();
 
                 commands.entity(root).add_child(terrain);
 

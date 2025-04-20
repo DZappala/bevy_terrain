@@ -180,7 +180,7 @@ impl GpuTileAtlas {
 
     fn upload_tiles(&mut self, queue: &RenderQueue) {
         for tile in self.upload_tiles.drain(..) {
-            let attachment = &self.attachments[&tile.label];
+            let attachment: &GpuAttachment = &self.attachments[&tile.label];
 
             queue.write_texture(
                 attachment.buffer_info.texture_copy_view(

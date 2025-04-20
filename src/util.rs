@@ -2,9 +2,9 @@ use bevy::render::{
     render_resource::{encase::internal::WriteInto, *},
     renderer::{RenderDevice, RenderQueue},
 };
-use std::ops::Deref;
+use std::{fmt::Debug, ops::Deref};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 enum BufferType {
     None,
     Uniform,
@@ -49,6 +49,7 @@ impl From<BufferUsages> for BufferType {
     }
 }
 
+#[derive(Debug)]
 pub struct GpuBuffer<T> {
     buffer: Buffer,
     pub value: Option<T>,
