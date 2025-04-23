@@ -10,7 +10,12 @@ use crate::{
     terrain_data::GpuTileAtlas,
     terrain_view::TerrainViewComponents,
 };
-use bevy::pbr::ExtractMeshesSet;
+use bevy::{
+    asset::UntypedAssetId,
+    ecs::{component::Tick, entity::EntityHashMap},
+    pbr::ExtractMeshesSet,
+    prelude::ResMut,
+};
 use bevy::{
     pbr::{
         MeshPipeline, MeshPipelineViewLayoutKey, RenderMaterialInstances, SetMaterialBindGroup,
@@ -35,7 +40,7 @@ use bevy::{
     },
 };
 use derive_more::derive::From;
-use std::{hash::Hash, marker::PhantomData};
+use std::{hash::Hash, marker::PhantomData, mem::transmute};
 
 #[derive(Component, Clone, Debug, Deref, DerefMut, Reflect, PartialEq, Eq, From)]
 #[reflect(Component, Default)]
@@ -47,19 +52,45 @@ impl<M: Material> Default for TerrainMaterial<M> {
     }
 }
 
+#[derive(Resource, Default)]
+struct TerrainRenderMaterialInstances {
+    pub instances: EntityHashMap<TerrainRenderMaterialInstance>,
+    pub current_change_tick: Tick,
+}
+
+#[allow(unused)]
+struct TerrainRenderMaterialInstance {
+    pub asset_id: UntypedAssetId,
+    pub last_change_tick: Tick,
+}
+
+#[allow(unused_assignments)]
 fn extract_terrain_materials<M: Material>(
-    mut material_instances: ResMut<RenderMaterialInstances<M>>,
+    mut material_instances: ResMut<RenderMaterialInstances>,
+    mut tmis: ResMut<TerrainRenderMaterialInstances>,
     terrains: Extract<Query<(Entity, &ViewVisibility, &TerrainMaterial<M>)>>,
 ) {
-    material_instances.clear();
+    tmis = unsafe {
+        transmute::<ResMut<'_, RenderMaterialInstances>, ResMut<'_, TerrainRenderMaterialInstances>>(
+            material_instances,
+        )
+    };
+    tmis.instances.clear();
+    let last_change_tick = tmis.current_change_tick;
 
     for (entity, _view_visibility, material) in &terrains {
-        // Todo: fix visibility
-        // if view_visibility.get() {
+        let bad_terrain_mat_inst = TerrainRenderMaterialInstance {
+            asset_id: material.id().into(),
+            last_change_tick,
+        };
 
-        material_instances.insert(entity.into(), material.id());
-        // }
+        tmis.instances.insert(entity, bad_terrain_mat_inst);
     }
+    material_instances = unsafe {
+        transmute::<ResMut<'_, TerrainRenderMaterialInstances>, ResMut<'_, RenderMaterialInstances>>(
+            tmis,
+        )
+    };
 }
 
 #[derive(PartialEq, Eq, Clone, Hash)]
@@ -446,6 +477,7 @@ where
             .add_systems(PostUpdate, spawn_terrains::<M>);
 
         app.sub_app_mut(RenderApp)
+            .init_resource::<TerrainRenderMaterialInstances>()
             .add_render_command::<TerrainItem, DrawTerrain<M>>()
             .init_resource::<SpecializedRenderPipelines<TerrainRenderPipeline<M>>>()
             .add_systems(

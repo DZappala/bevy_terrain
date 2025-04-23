@@ -11,7 +11,7 @@ use crate::{
 };
 use bevy::{
     asset::RenderAssetUsages,
-    platform_support::collections::{HashMap, HashSet},
+    platform::collections::{HashMap, HashSet},
     prelude::*,
     render::{render_resource::*, storage::ShaderStorageBuffer, view::NoFrustumCulling},
     tasks::Task,
@@ -109,11 +109,11 @@ impl TileAtlas {
                 TerrainShape::Spheroid { major_axis, .. } => {
                     // For spherical terrain, use 5% of the radius as scaling factor
                     major_axis as f32 * 0.05
-                },
+                }
                 TerrainShape::Sphere { radius } => {
                     // For spherical terrain, use 5% of the radius as scaling factor
                     radius as f32 * 0.05
-                },
+                }
                 TerrainShape::Plane { .. } => {
                     // For planar terrain, use a reasonable default
                     128.0

@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use bevy::{
-    platform_support::collections::HashMap,
+    platform::collections::HashMap,
     prelude::{Added, Component, Entity, Query, Res, ResMut, Vec, default},
     render::{
         Extract, MainWorld,
