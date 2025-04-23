@@ -1,8 +1,10 @@
 use bevy::{
+    asset::Asset,
     prelude::{
-        App, Asset, AssetServer, Commands, DefaultPlugins, Entity, Handle, Image, Material,
-        PluginGroup, Res, ResMut, Startup, Transform, TransformPlugin, TypePath, Vec3, vec,
+        App, AssetServer, Commands, DefaultPlugins, Entity, Handle, Image, Material, PluginGroup,
+        Res, ResMut, Startup, Transform, TransformPlugin, Vec3,
     },
+    reflect::TypePath,
     render::render_resource::{
         AsBindGroup, ShaderRef, ShaderType, TextureDimension, TextureFormat,
     },

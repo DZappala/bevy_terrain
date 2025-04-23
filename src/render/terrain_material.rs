@@ -17,13 +17,12 @@ use bevy::{
     prelude::ResMut,
 };
 use bevy::{
-    pbr::{
-        MeshPipeline, MeshPipelineViewLayoutKey, RenderMaterialInstances, SetMaterialBindGroup,
-        SetMeshViewBindGroup,
-    },
+    pbr::ExtractMeshesSet, platform::collections::HashMap, prelude::Handle, render::Extract,
+};
+use bevy::{
+    pbr::{MeshPipeline, MeshPipelineViewLayoutKey, SetMaterialBindGroup, SetMeshViewBindGroup},
     prelude::*,
     render::{
-        Extract,
         Render,
         RenderApp,
         RenderSet,
@@ -394,6 +393,66 @@ pub(crate) type DrawTerrain<M> = (
     DrawTerrainCommand,
 );
 
+// #[allow(clippy::too_many_arguments)]
+// pub(crate) fn queue_terrain<M: Material>(
+//     terrain_mats: Res<TerrainRenderMaterials<M>>,
+//     draw_functions: Res<DrawFunctions<TerrainItem>>,
+//     debug: Option<Res<DebugTerrain>>,
+//     pipeline_cache: Res<PipelineCache>,
+//     terrain_pipeline: Res<TerrainRenderPipeline<M>>,
+//     mut pipelines: ResMut<SpecializedRenderPipelines<TerrainRenderPipeline<M>>>,
+//     mut terrain_phases: ResMut<ViewSortedRenderPhases<TerrainItem>>,
+//     gpu_tile_atlases: Res<TerrainComponents<GpuTileAtlas>>,
+//     gpu_terrain_views: Res<TerrainViewComponents<GpuTerrainView>>,
+//     mut views: Query<(MainEntity, &Msaa)>,
+// ) where
+//     M::Data: PartialEq + Eq + Hash + Clone,
+// {
+//     let draw_function = draw_functions.read().get_id::<DrawTerrain<M>>().unwrap();
+//
+//     for (view_entity, msaa) in &mut views {
+//         let Some(phase) = terrain_phases.get_mut(&RetainedViewEntity {
+//             main_entity: view_entity.into(),
+//             auxiliary_entity: Entity::PLACEHOLDER.into(),
+//             subview_index: 0,
+//         }) else {
+//             continue;
+//         };
+//
+//         for (&terrain_ent, tile_atlas) in gpu_tile_atlases.iter() {
+//             if let Some(gpu_terrain_view) = gpu_terrain_views.get(&(terrain_ent, view_entity)) {
+//                 if let Some(_mat_handle) = terrain_mats.instances.get(&terrain_ent) {
+//                     let mut flags = TerrainPipelineFlags::from_msaa_samples(msaa.samples());
+//                     if tile_atlas.is_spherical {
+//                         flags |= TerrainPipelineFlags::SPHERICAL;
+//                     }
+//                     if let Some(debug) = &debug {
+//                         flags |= TerrainPipelineFlags::from_debug(debug);
+//                     } else {
+//                         flags |= TerrainPipelineFlags::LIGHTING
+//                             | TerrainPipelineFlags::MORPH
+//                             | TerrainPipelineFlags::BLEND
+//                             | TerrainPipelineFlags::SAMPLE_GRAD;
+//                     }
+//                     let pipeline_key = TerrainPipelineKey { flags };
+//                     let pipeline_id =
+//                         pipelines.specialize(&pipeline_cache, &terrain_pipeline, pipeline_key);
+//
+//                     // Then queue up the item in the `TerrainItem` phase
+//                     phase.add(TerrainItem {
+//                         representative_entity: (terrain_ent, terrain_ent.into()),
+//                         draw_function,
+//                         pipeline: pipeline_id,
+//                         batch_range: 0..1,
+//                         extra_index: PhaseItemExtraIndex::None,
+//                         order: gpu_terrain_view.order,
+//                     });
+//                 }
+//             }
+//         }
+//     }
+// }
+
 /// Queses all terrain entities for rendering via the terrain pipeline.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn queue_terrain<M: Material>(
@@ -466,9 +525,10 @@ impl<M: Material> Default for TerrainMaterialPlugin<M> {
     }
 }
 
-impl<M: Material + Clone> Plugin for TerrainMaterialPlugin<M>
+impl<M> Plugin for TerrainMaterialPlugin<M>
 where
     M::Data: PartialEq + Eq + Hash + Clone,
+    M: Material + Clone,
 {
     fn build(&self, app: &mut App) {
         app.add_plugins(MaterialPlugin::<M>::default())
@@ -479,6 +539,7 @@ where
         app.sub_app_mut(RenderApp)
             .init_resource::<TerrainRenderMaterialInstances>()
             .add_render_command::<TerrainItem, DrawTerrain<M>>()
+            .init_resource::<TerrainRenderMaterials<M>>()
             .init_resource::<SpecializedRenderPipelines<TerrainRenderPipeline<M>>>()
             .add_systems(
                 ExtractSchedule,

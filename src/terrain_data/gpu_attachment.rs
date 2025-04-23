@@ -13,7 +13,7 @@ use bevy::{
     },
 };
 use itertools::Itertools;
-use std::{iter, mem};
+use std::{fmt::Debug, iter, mem};
 
 const COPY_BYTES_PER_ROW_ALIGNMENT: u32 = 256;
 
@@ -177,6 +177,7 @@ impl AtlasBufferInfo {
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct GpuAttachment {
     pub(crate) index: usize,
 
