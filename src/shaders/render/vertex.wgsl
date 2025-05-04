@@ -28,28 +28,28 @@ struct VertexInfo {
 
 fn vertex_info(input: VertexInput) -> VertexInfo {
     var info: VertexInfo;
-    info.tile_index       = input.vertex_index / terrain_view.vertices_per_tile;
-    info.coordinate       = compute_coordinate(input.vertex_index);
+    info.tile_index = input.vertex_index / terrain_view.vertices_per_tile;
+    info.coordinate = compute_coordinate(input.vertex_index);
     info.world_coordinate = compute_world_coordinate(info.coordinate, info.tile_index, info.coordinate.uv);
-    info.blend            = compute_blend(info.world_coordinate.view_distance);
+    info.blend = compute_blend(info.world_coordinate.view_distance);
     return info;
 }
 
 fn vertex_output(info: ptr<function, VertexInfo>, height: f32) -> VertexOutput {
     var output: VertexOutput;
     output.clip_position = position_world_to_clip(apply_height((*info).world_coordinate, height));
-    output.tile_uv       = (*info).coordinate.uv;
-    output.tile_index    = (*info).tile_index;
+    output.tile_uv = (*info).coordinate.uv;
+    output.tile_index = (*info).tile_index;
     output.view_distance = (*info).world_coordinate.view_distance;
-    output.height        = height;
+    output.height = height;
     return output;
 }
 
 @vertex
 fn vertex(input: VertexInput) -> VertexOutput {
-    var info   = vertex_info(input);
+    var info = vertex_info(input);
 
-    let tile   = lookup_tile(info.coordinate, info.blend);
+    let tile = lookup_tile(info.coordinate, info.blend);
     var height = sample_height(tile);
 
     return vertex_output(&info, height);
