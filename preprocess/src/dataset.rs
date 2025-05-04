@@ -14,7 +14,7 @@ use gdal::{
 };
 use itertools::Itertools;
 use std::{
-    fs,
+    fs, iter,
     path::{Path, PathBuf},
     process::Command,
     str::FromStr,
@@ -137,27 +137,53 @@ impl PreprocessContext {
         create_mask: bool,
         overwrite: bool,
     ) -> PreprocessResult<(Dataset, Self)> {
-        let mut src_datasets = src_path
+        //let mut src_datasets = src_path
+        // .iter()
+        // .flat_map(|src_path| {
+        //     if src_path.is_dir() {
+        //         iter_directory(src_path).collect_vec()
+        //     } else {
+        //         vec![src_path.clone()]
+        //     }
+        // })
+        // .filter(|path| {
+        //     let path = path.to_str().unwrap();
+        //     path.ends_with(".tif") || path.ends_with(".tiff")
+        // })
+        // .map(|path| Dataset::open(path).unwrap())
+        // .collect_vec();
+        //
+        // let src_dataset = if src_datasets.len() == 1 {
+        //     src_datasets.remove(0)
+        // } else {
+        //     build_vrt(None, &src_datasets, None)?
+        // };
+
+        let mut paths = src_path
             .iter()
-            .flat_map(|src_path| {
-                if src_path.is_dir() {
-                    iter_directory(src_path).collect_vec()
+            .flat_map(|p| {
+                if p.is_dir() {
+                    Box::new(iter_directory(p)) as Box<dyn Iterator<Item = _>>
                 } else {
-                    vec![src_path.clone()]
+                    Box::new(iter::once(p.clone()))
                 }
             })
-            .flatten()
-            .filter(|path| {
-                let path = path.to_str().unwrap();
-                path.ends_with(".tif") || path.ends_with(".tiff")
-            })
-            .map(|path| Dataset::open(path).unwrap())
-            .collect_vec();
+            .filter_map(|path| match path.extension().and_then(|e| e.to_str()) {
+                Some("tif") | Some("tiff") => Dataset::open(&path).ok(),
+                _ => None,
+            });
 
-        let src_dataset = if src_datasets.len() == 1 {
-            src_datasets.remove(0)
-        } else {
-            build_vrt(None, &src_datasets, None)?
+        let first = paths.next();
+        let second = paths.next();
+
+        let src_dataset = match (first, second) {
+            (None, _) => panic!("No source datasets found."),
+            (Some(ds), None) => ds,
+            (Some(ds1), Some(ds2)) => {
+                let mut all = vec![ds1, ds2];
+                all.extend(paths);
+                build_vrt(None, &all, None)?
+            }
         };
 
         let data_type = match data_type {
