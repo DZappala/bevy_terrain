@@ -110,6 +110,7 @@ pub struct TileTree {
     pub(crate) lod_count: u32,
     pub(crate) shape: TerrainShape,
     pub(crate) geometry_tile_count: u32,
+    pub(crate) refinement_count: u32,
     pub(crate) grid_size: u32,
     pub(crate) morph_range: f32,
     pub(crate) blend_range: f32,
@@ -143,8 +144,6 @@ impl TileTree {
         commands: &mut Commands,
         buffers: &mut Assets<ShaderStorageBuffer>, // Todo: solve this dependency with a component hook in the future
     ) -> Self {
-        let scale = config.shape.scale_f32();
-
         let data = Array4::default((
             config.shape.face_count() as usize,
             config.lod_count as usize,
@@ -172,26 +171,34 @@ impl TileTree {
             ))
             .observe(Self::approximate_height_readback);
         
-        let planar_distancce_scale = match config.shape {
-            TerrainShape::Plane { .. } => 3.0,
-            _ => 1.0,
-        };
+        let face_size = config.shape.face_size();
+
+        //let planar_distancce_scale = match config.shape {
+        //    TerrainShape::Plane { .. } => 3.0,
+        //    _ => 1.0,
+        //};
 
         Self {
             tree_size: view_config.tree_size,
             lod_count: config.lod_count,
             shape: config.shape,
             geometry_tile_count: view_config.geometry_tile_count,
+            refinement_count: view_config.refinement_count,
             grid_size: view_config.grid_size,
-            morph_distance: view_config.morph_distance * scale,
-            blend_distance: view_config.blend_distance * scale,
-            load_distance: view_config.blend_distance * scale * (1.0 + view_config.load_tolerance) * planar_distancce_scale,
+            morph_distance: view_config.morph_distance * face_size,
+            blend_distance: view_config.blend_distance * face_size,
+            load_distance: view_config.blend_distance
+                * face_size
+                * (1.0 + view_config.load_tolerance),
+            // load_distance: view_config.blend_distance
+            //     * face_size
+            //     * (1.0 + view_config.load_tolerance) * planar_distancce_scale,
             subdivision_distance: view_config.morph_distance
-                * scale
+                * face_size
                 * (1.0 + view_config.subdivision_tolerance),
             morph_range: view_config.morph_range,
             blend_range: view_config.blend_range,
-            precision_distance: view_config.precision_distance * scale,
+            precision_distance: view_config.precision_distance * config.shape.scale_scalar(),
             view_face: 0,
             view_lod: view_config.view_lod,
             view_local_position: default(),

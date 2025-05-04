@@ -34,9 +34,6 @@ pub struct TerrainDebugPlugin;
 
 impl Plugin for TerrainDebugPlugin {
     fn build(&self, app: &mut App) {
-        #[cfg(feature = "metal_capture")]
-        app.add_plugins(MetalCapturePlugin);
-
         app.init_resource::<DebugTerrain>()
             .init_resource::<LoadingImages>()
             .add_systems(Startup, (debug_lighting, debug_window))
@@ -55,6 +52,8 @@ impl Plugin for TerrainDebugPlugin {
                 Last,
                 debug_surface_approximation.after(TileTree::generate_surface_approximation),
             );
+        #[cfg(feature = "metal_capture")]
+        app.add_plugins(MetalCapturePlugin);
 
         app.sub_app_mut(RenderApp)
             .init_resource::<DebugTerrain>()
@@ -290,24 +289,28 @@ pub fn update_view_parameter(
     mut tile_trees: ResMut<TerrainViewComponents<TileTree>>,
 ) {
     for tile_tree in tile_trees.values_mut() {
-        let scale = tile_tree.shape.scale_f32();
+        let face_size = tile_tree.shape.face_size();
 
         if input.pressed(KeyCode::KeyV) {
-            tile_tree.blend_distance -= 0.25 * scale;
-            info!("Blend distance: {}.", tile_tree.blend_distance / scale);
+            tile_tree.blend_distance -= 0.25 * face_size;
+            tile_tree.load_distance -= 0.25 * face_size;
+            info!("Blend and load distance: {}.", tile_tree.blend_distance / face_size);
         }
         if input.pressed(KeyCode::KeyB) {
-            tile_tree.blend_distance += 0.25 * scale;
-            info!("Blend distance: {}.", tile_tree.blend_distance / scale);
+            tile_tree.blend_distance += 0.25 * face_size;
+            tile_tree.load_distance += 0.25 * face_size;
+            info!("Blend and load distance: {}.", tile_tree.blend_distance / face_size);
         }
 
         if input.pressed(KeyCode::KeyN) {
-            tile_tree.morph_distance -= 0.25 * scale;
-            info!("Morph distance: {}.", tile_tree.morph_distance / scale);
+            tile_tree.morph_distance -= face_size;
+            tile_tree.subdivision_distance -= face_size;
+            info!("Morph distance: {}.", tile_tree.morph_distance / face_size);
         }
         if input.pressed(KeyCode::KeyM) {
-            tile_tree.morph_distance += 0.25 * scale;
-            info!("Morth distance: {}.", tile_tree.morph_distance / scale);
+            tile_tree.morph_distance += face_size;
+            tile_tree.subdivision_distance += face_size;
+            info!("Morth distance: {}.", tile_tree.morph_distance / face_size);
         }
 
         if input.pressed(KeyCode::KeyG) && tile_tree.grid_size > 2 {

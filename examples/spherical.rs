@@ -1,3 +1,4 @@
+use bevy::window::WindowResolution;
 use bevy::{prelude::*, reflect::TypePath, render::render_resource::*};
 use bevy_terrain::prelude::{
     BigSpaceCommands, DebugCameraController, Grid, LoadingImages, OrbitalCameraController,
@@ -30,13 +31,23 @@ impl Material for CustomMaterial {
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins.build().disable::<TransformPlugin>(),
+            DefaultPlugins
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        resolution: WindowResolution::new(1920.0, 1080.0),
+                        ..default()
+                    }),
+                    ..default()
+                })
+                .build()
+                .disable::<TransformPlugin>(),
             TerrainPlugin,
             TerrainMaterialPlugin::<CustomMaterial>::default(),
             TerrainDebugPlugin,
             TerrainPickingPlugin,
         ))
         .insert_resource(TerrainSettings::new(vec!["albedo"]))
+        // .insert_resource(ClearColor(Color::WHITE))
         .add_systems(Startup, initialize)
         .run();
 }
@@ -79,7 +90,7 @@ fn initialize(
         TerrainViewConfig::default(),
         CustomMaterial {
             gradient: gradient1.clone(),
-            gradient_info: GradientInfo { mode: 1 },
+            gradient_info: GradientInfo { mode: 2 },
         },
         view,
     );
