@@ -15,6 +15,12 @@ use bevy_terrain::prelude::{
 
 const VIEW_DISTANCE: f64 = 100000.;
 
+#[cfg(feature = "wesl")]
+const FRAGMENT_SHADER_ASSET_PATH: &str = "shaders/planar.wesl";
+
+#[cfg(not(feature = "wesl"))]
+const FRAGMENT_SHADER_ASSET_PATH: &str = "shaders/planar.wgsl";
+
 #[derive(ShaderType, Clone)]
 struct GradientInfo {
     mode: u32,
@@ -31,7 +37,7 @@ pub struct CustomMaterial {
 
 impl Material for CustomMaterial {
     fn fragment_shader() -> ShaderRef {
-        "shaders/planar.wgsl".into()
+        FRAGMENT_SHADER_ASSET_PATH.into()
     }
 }
 

@@ -1,9 +1,7 @@
-#define_import_path bevy_terrain::debug
-
-#import bevy_terrain::types::{Coordinate, WorldCoordinate, TileCoordinate, AtlasTile, Blend}
-#import bevy_terrain::bindings::{terrain, tile_tree, terrain_view, approximate_height, geometry_tiles, attachments, origins}
-#import bevy_terrain::functions::{lookup_best, compute_world_coordinate, tree_lod, compute_subdivision_coordinate}
-#import bevy_pbr::mesh_view_bindings::view
+import super::types::{Coordinate, WorldCoordinate, TileCoordinate, AtlasTile, Blend};
+import super::bindings::{terrain, tile_tree, terrain_view, approximate_height, geometry_tiles, attachments, origins};
+import super::functions::{lookup_best, compute_world_coordinate, tree_lod, compute_subdivision_coordinate};
+import bevy_pbr::mesh_view_bindings::view;
 
 fn index_color(index: u32) -> vec4<f32> {
     var COLOR_ARRAY = array(
@@ -35,11 +33,11 @@ fn checker_color(coordinate: Coordinate, ratio: f32) -> vec4<f32> {
 }
 
 fn show_data_lod(blend: Blend, tile: AtlasTile) -> vec4<f32> {
-#ifdef TILE_TREE_LOD
+@if(TILE_TREE_LOD) {
     let ratio = 0.0;
-#else
+} @else {
     let ratio = select(0.0, blend.ratio, blend.lod == tile.coordinate.lod);
-#endif
+}
 
     var color = checker_color(tile.coordinate, ratio);
 
@@ -47,9 +45,9 @@ fn show_data_lod(blend: Blend, tile: AtlasTile) -> vec4<f32> {
         color = mix(color, vec4<f32>(0.0), 0.8);
     }
 
-// #ifdef SPHERICAL
+// @if(SPHERICAL) {
 //     color = mix(color, index_color(tile.coordinate.face), 0.3);
-// #endif
+// }
 
     return color;
 }
@@ -63,11 +61,11 @@ fn show_geometry_lod(coordinate: Coordinate, tile_index: u32) -> vec4<f32> {
     let target_lod = log2(terrain_view.morph_distance / view_distance);
     let lod = u32(coordinate.lod);
 
-#ifdef MORPH
+@if(MORPH) {
     let ratio = select(saturate(1.0 - (target_lod - f32(lod)) / terrain_view.morph_range), 0.0, lod == 0);
-#else
+} @else {
     let ratio = 0.0;
-#endif
+}
 
     var color = checker_color(coordinate, ratio);
 
@@ -81,9 +79,9 @@ fn show_geometry_lod(coordinate: Coordinate, tile_index: u32) -> vec4<f32> {
         color = mix(color, vec4<f32>(0.0), 0.8);
     }
 
-#ifdef SPHERICAL
+@if(SPHERICAL) {
     color = mix(color, index_color(coordinate.face), 0.3);
-#endif
+}
 
     if max(0.0, target_lod) < f32(coordinate.lod) - 1.0 + terrain_view.morph_range {
         // The view_distance and morph range are not sufficient.
@@ -122,9 +120,9 @@ fn show_pixels(tile: AtlasTile) -> vec4<f32> {
 
     let is_even = (u32(pixel_coordinate.x) + u32(pixel_coordinate.y)) % 2u == 0u;
 
-    if is_even {
-        return vec4<f32>(0.5, 0.5, 0.5, 1.0);
-    } else {
-        return vec4<f32>(0.1, 0.1, 0.1, 1.0);
+    if is_even { 
+      return vec4<f32>(0.5, 0.5, 0.5, 1.0); 
+    } else {         
+      return vec4<f32>(0.1, 0.1, 0.1, 1.0); 
     }
 }

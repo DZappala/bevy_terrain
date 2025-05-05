@@ -23,8 +23,14 @@ pub struct CustomMaterial {
 }
 
 impl Material for CustomMaterial {
+    #[cfg(not(feature = "wesl"))]
     fn fragment_shader() -> ShaderRef {
         "shaders/spherical.wgsl".into()
+    }
+
+    #[cfg(feature = "wesl")]
+    fn fragment_shader() -> ShaderRef {
+        "shaders/spherical.wesl".into()
     }
 }
 
