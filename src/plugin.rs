@@ -28,8 +28,6 @@ use bevy::{
     },
 };
 use bevy_common_assets::ron::RonAssetPlugin;
-
-#[cfg(feature = "embeded")]
 use big_space::prelude::BigSpacePlugin;
 
 #[derive(Resource)]
@@ -75,7 +73,7 @@ pub struct TerrainPlugin;
 
 impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {
-        #[cfg(feature = "embeded")]
+        #[cfg(feature = "high_precision")]
         app.add_plugins(BigSpacePlugin::default());
 
         app.add_plugins(RonAssetPlugin::<TerrainConfig>::new(&["tc.ron"]))

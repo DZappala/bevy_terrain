@@ -15,23 +15,11 @@ repository = "https://github.com/kurtkuehnert/bevy_terrain"
 members = ["preprocess"]
 
 [features]
-### Enable big space's, high-precision grid
 high_precision = ["dep:big_space"]
-### ???
 rand = ["dep:rand"]
-### Enable the Metal rendering API
 metal_capture = ["dep:metal", "dep:wgpu-core"]
-### Enable experimental wesl shaders in this repo and in bevy
+unstable = ["wesl"]
 wesl = ["bevy/shader_format_wesl"]
-### Embed big space into the terrain plugin
-embeded = ["high_precision", "rand"]
-### Enable unstable features
-alpha = ["wesl", "high_precision", "rand"]
-### Enable mostly-stable features
-beta = ["high_precision", "rand"]
-### Enable mostly-stable features and embed big_space into the Terrain plugin
-beta_dev = ["embeded"]
-
 
 [dependencies]
 tiff = "0.9.1"
