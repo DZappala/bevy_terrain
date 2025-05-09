@@ -38,7 +38,7 @@ derive_more = { version = "2.0.1", features = ["from"] }
 slab = "0.4.9"
 strum = "0.27.1"
 strum_macros = "0.27.1"
-big_space = { git = "https://github.com/aevyrie/big_space", rev = "3b254a829c17d198c067f4ec3e11d24a68211e1c", features = [
+big_space = { git = "https://github.com/aevyrie/big_space", rev = "462f107917bf22f52907476aac5e9d003f90f405", features = [
   "i32",
 ], optional = true }
 rand = { version = "0.9.0", optional = true }
