@@ -4,6 +4,6 @@ target
 captures
 assets/**/data/*
 assets/**/config.tc
-assets/terrains/
+assets/terrains
 assets/source_data
 .nvim*
