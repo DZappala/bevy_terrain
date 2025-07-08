@@ -1,7 +1,5 @@
 pub use big_space::prelude::{BigSpaceCommands, FloatingOrigin};
-
 pub type GridPrecision = i32;
-
 pub type BigSpacePlugin = big_space::prelude::BigSpacePlugin<GridPrecision>;
 pub type Grid = big_space::prelude::Grid<GridPrecision>;
 pub type Grids<'w, 's> = big_space::prelude::Grids<'w, 's, GridPrecision>;

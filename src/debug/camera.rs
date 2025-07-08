@@ -1,7 +1,7 @@
 #[cfg(feature = "high_precision")]
 use big_space::{
-    prelude::{FloatingOrigin, GridTransform, Grids},
-    world_query::GridTransformItem,
+    prelude::{CellTransform, FloatingOrigin, Grids},
+    world_query::CellTransformItem,
 };
 
 use bevy::{
@@ -59,7 +59,7 @@ pub fn debug_camera_controller(
     mut mouse_move: EventReader<MouseMotion>,
     #[cfg(feature = "high_precision")] mut camera: Query<(
         Entity,
-        GridTransform,
+        CellTransform,
         &mut DebugCameraController,
     )>,
     #[cfg(not(feature = "high_precision"))] mut camera: Query<(
@@ -70,7 +70,7 @@ pub fn debug_camera_controller(
     #[cfg(feature = "high_precision")]
     let Ok((
         camera,
-        GridTransformItem {
+        CellTransformItem {
             mut transform,
             mut cell,
         },

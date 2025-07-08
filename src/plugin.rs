@@ -16,8 +16,8 @@ use crate::{
 use bevy::{
     core_pipeline::core_3d::graph::{Core3d, Node3d},
     prelude::{
-        App, AssetApp, ExtractSchedule, IntoScheduleConfigs, Plugin, PostUpdate, Resource,
-        ToString, TransformSystem, Vec, World, vec,
+        App, AssetApp, ExtractSchedule, IntoScheduleConfigs, Plugin, PluginGroup, PostUpdate,
+        Resource, ToString, TransformSystem, Vec, World, vec,
     },
     render::{
         Render, RenderApp, RenderSet,
@@ -28,7 +28,8 @@ use bevy::{
     },
 };
 use bevy_common_assets::ron::RonAssetPlugin;
-use big_space::prelude::BigSpacePlugin;
+#[cfg(feature = "high_precision")]
+use big_space::plugin::BigSpaceDefaultPlugins;
 
 #[derive(Resource)]
 pub struct TerrainSettings {
@@ -74,7 +75,7 @@ pub struct TerrainPlugin;
 impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {
         #[cfg(feature = "high_precision")]
-        app.add_plugins(BigSpacePlugin::default());
+        app.add_plugins(BigSpaceDefaultPlugins.build());
 
         app.add_plugins(RonAssetPlugin::<TerrainConfig>::new(&["tc.ron"]))
             .init_asset::<TerrainConfig>()

@@ -146,7 +146,7 @@ impl TerrainViewDepthTexture {
         }
     }
 
-    pub fn get_attachment(&self) -> RenderPassDepthStencilAttachment {
+    pub fn get_attachment(&self) -> RenderPassDepthStencilAttachment<'_> {
         RenderPassDepthStencilAttachment {
             view: &self.view,
             depth_ops: Some(Operations {
