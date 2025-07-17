@@ -6,8 +6,8 @@ edition = "2024"
 [dependencies]
 bevy_terrain = { path = "..", features = ["high_precision"] }
 gag = "1.0.0"
-gdal = { version = "0.17.0", features = ["bindgen", "ndarray"] }
-gdal-sys = "0.10.0"
+gdal = { version = "0.18.0", features = ["bindgen", "ndarray"] }
+gdal-sys = { version = "0.11.0" }
 bevy_math = "0.16.0-rc.3"
 itertools = "0.14.0"
 thiserror = "2.0.8"
@@ -15,8 +15,8 @@ num = "0.4"
 rayon = "1.10.0"
 thread_local = "1.1.8"
 clap = { version = "4.5.17", features = ["derive"] }
-indicatif = { version = "0.17.8", features = ["rayon"] }
-ndarray = "0.15"
+indicatif = { version = "0.18.0", features = ["rayon"] }
+ndarray = "0.16.1"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [

@@ -85,7 +85,7 @@ impl FaceRotation {
     }
 
     fn new(face: u32, other_face: u32) -> Self {
-        let index = if (face % 2) == 0 {
+        let index = if face.is_multiple_of(2) {
             (6 + other_face - face) % 6
         } else {
             (6 + face - other_face) % 6

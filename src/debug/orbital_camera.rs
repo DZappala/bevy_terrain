@@ -125,13 +125,13 @@ pub fn orbital_camera_controller(
     let mut window = window.single_mut().unwrap();
 
     let terrain_origin = DVec3::ZERO;
-    let camera_position = grid.grid_position_double(&camera_cell, &camera_transform);
-    let camera_rotation = camera_transform.rotation.as_dquat();
-    let mut new_camera_position = camera_position;
-    let mut new_camera_rotation = camera_rotation;
+    let cam_pos = grid.grid_position_double(&camera_cell, &camera_transform);
+    let cam_rot = camera_transform.rotation.as_dquat();
+    let mut new_cam_pos = cam_pos;
+    let mut new_cam_rot = cam_rot;
 
     let cursor_cell = picking_data.cell;
-    let cursor_position = picking_data.translation.map(|translation| {
+    let cursor_pos = picking_data.translation.map(|translation| {
         grid.grid_position_double(&cursor_cell, &Transform::from_translation(translation))
     });
     let cursor_coords = picking_data.cursor_coords;
@@ -139,11 +139,13 @@ pub fn orbital_camera_controller(
     let mut update_cursor_coords = true;
 
     if mouse_buttons.pressed(MouseButton::Left) {
-        if controller.pan_data.is_none() && cursor_position.is_some() {
-            controller.anchor_position = cursor_position.unwrap();
+        if let Some(cursor_pos) = cursor_pos
+            && controller.pan_data.is_none()
+        {
+            controller.anchor_position = cursor_pos;
             controller.anchor_cell = cursor_cell;
-            controller.camera_position = camera_position;
-            controller.camera_rotation = camera_rotation;
+            controller.camera_position = cam_pos;
+            controller.camera_rotation = cam_rot;
             controller.pan_data = Some(PanData {
                 world_from_clip: picking_data.world_from_clip,
                 pan_coords: cursor_coords,
@@ -158,11 +160,13 @@ pub fn orbital_camera_controller(
     }
 
     if mouse_buttons.pressed(MouseButton::Middle) {
-        if controller.rotation_data.is_none() && cursor_position.is_some() {
-            controller.anchor_position = cursor_position.unwrap();
+        if let Some(cursor_pos) = cursor_pos
+            && controller.rotation_data.is_none()
+        {
+            controller.anchor_position = cursor_pos;
             controller.anchor_cell = cursor_cell;
-            controller.camera_position = camera_position;
-            controller.camera_rotation = camera_rotation;
+            controller.camera_position = cam_pos;
+            controller.camera_rotation = cam_rot;
             controller.rotation_data = Some(RotationData {
                 target_rotation: DVec2::ZERO,
                 rotation: DVec2::ZERO,
@@ -190,13 +194,15 @@ pub fn orbital_camera_controller(
     }
 
     if mouse_buttons.pressed(MouseButton::Right) {
-        if controller.zoom_data.is_none() && cursor_position.is_some() {
-            controller.anchor_position = cursor_position.unwrap();
+        if let Some(cursor_pos) = cursor_pos
+            && controller.zoom_data.is_none()
+        {
+            controller.anchor_position = cursor_pos;
             controller.anchor_cell = cursor_cell;
-            controller.camera_position = camera_position;
-            controller.camera_rotation = camera_rotation;
+            controller.camera_position = cam_pos;
+            controller.camera_rotation = cam_rot;
 
-            let zoom = (cursor_position.unwrap() - camera_position).length().log2();
+            let zoom = (cursor_pos - cam_pos).length().log2();
 
             controller.zoom_data = Some(ZoomData {
                 target_zoom: zoom,
@@ -237,7 +243,7 @@ pub fn orbital_camera_controller(
         && controller.rotation_data.is_none()
         && controller.zoom_data.is_none()
     {
-        controller.anchor_position = cursor_position.unwrap_or(DVec3::NAN);
+        controller.anchor_position = cursor_pos.unwrap_or(DVec3::NAN);
     }
 
     if let Some(pan_data) = controller.pan_data {
@@ -280,9 +286,8 @@ pub fn orbital_camera_controller(
         // the camera should be rotated by this amount, so that the panning anchor ends up under the cursor
         let rotation = DQuat::from_rotation_arc(new_direction, initial_direction);
 
-        new_camera_position =
-            terrain_origin + rotation * (controller.camera_position - terrain_origin);
-        new_camera_rotation = rotation * controller.camera_rotation;
+        new_cam_pos = terrain_origin + rotation * (controller.camera_position - terrain_origin);
+        new_cam_rot = rotation * controller.camera_rotation;
     }
 
     if let Some(rotation_data) = controller.rotation_data {
@@ -297,9 +302,9 @@ pub fn orbital_camera_controller(
         let rotation_tilt = DQuat::from_axis_angle(tilt_axis, rotation_data.rotation.y);
         let rotation = rotation_heading * rotation_tilt;
 
-        new_camera_position = controller.anchor_position
+        new_cam_pos = controller.anchor_position
             + rotation * (controller.camera_position - controller.anchor_position);
-        new_camera_rotation = rotation * controller.camera_rotation;
+        new_cam_rot = rotation * controller.camera_rotation;
     }
 
     if let Some(zoom_data) = controller.zoom_data {
@@ -335,22 +340,22 @@ pub fn orbital_camera_controller(
         let initial_direction = camera_terrain.normalize();
         let new_direction = (terrain_origin - camera_position).normalize();
 
-        new_camera_position = camera_position;
-        new_camera_rotation =
+        new_cam_pos = camera_position;
+        new_cam_rot =
             DQuat::from_rotation_arc(initial_direction, new_direction) * controller.camera_rotation;
     }
 
-    let (new_cell, new_translation) = grid.translation_to_grid(new_camera_position);
+    let (new_cell, new_translation) = grid.translation_to_grid(new_cam_pos);
 
     *camera_cell = new_cell;
     camera_transform.translation = new_translation;
-    camera_transform.rotation = new_camera_rotation.as_quat();
+    camera_transform.rotation = new_cam_rot.as_quat();
 
     let anchor_size = 200.0;
 
     gizmos.sphere(
         (controller.anchor_position - grid.cell_to_float(&new_cell)).as_vec3(),
-        new_camera_position.distance(controller.anchor_position) as f32 / anchor_size,
+        new_cam_pos.distance(controller.anchor_position) as f32 / anchor_size,
         basic::GREEN,
     );
 }

@@ -137,14 +137,14 @@ impl TileAtlas {
                 return TileTreeEntry::default();
             }
 
-            if let Some(tile) = self.tile_states.get(&best_tile_coordinate) {
-                if matches!(tile.state, LoadingState::Loaded) {
-                    // found best loaded tile
-                    return TileTreeEntry {
-                        atlas_index: tile.atlas_index,
-                        atlas_lod: best_tile_coordinate.lod,
-                    };
-                }
+            if let Some(tile) = self.tile_states.get(&best_tile_coordinate)
+                && matches!(tile.state, LoadingState::Loaded)
+            {
+                // found best loaded tile
+                return TileTreeEntry {
+                    atlas_index: tile.atlas_index,
+                    atlas_lod: best_tile_coordinate.lod,
+                };
             }
 
             best_tile_coordinate = best_tile_coordinate
