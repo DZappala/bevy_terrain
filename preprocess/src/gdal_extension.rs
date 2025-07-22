@@ -15,9 +15,14 @@ use gdal_sys::{
     GDALWarpOperationH,
 };
 use itertools::Itertools;
+#[cfg(not(windows))]
+use std::os::unix::ffi::OsStrExt;
+
+#[cfg(windows)]
+use std::os::windows::ffi::OsStrExt;
+
 use std::{
     ffi::{CStr, CString, c_char, c_double, c_int, c_void},
-    os::unix::ffi::OsStrExt,
     path::Path,
     ptr, slice,
     sync::atomic::{AtomicU64, Ordering},
@@ -309,7 +314,7 @@ pub struct SharedReadOnlyDataset {
 impl SharedReadOnlyDataset {
     pub fn new(path: &Path) -> Self {
         Self {
-            path: CString::new(path.as_os_str().as_bytes()).unwrap(),
+            path: CString::new(path.as_os_str().as_encoded_bytes()).unwrap(),
             pool: ThreadLocal::new(),
         }
     }
