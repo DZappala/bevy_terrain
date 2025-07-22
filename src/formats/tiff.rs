@@ -60,6 +60,7 @@ impl AssetLoader for TiffLoader {
                 DecodingResult::U16(_) => TextureFormat::R16Unorm,
                 DecodingResult::U32(_) => TextureFormat::R32Uint,
                 DecodingResult::F32(_) => TextureFormat::R32Float,
+                DecodingResult::I16(_) => TextureFormat::R16Sint,
                 _ => todo!(
                     "Unimplemented colortype-datatype combination. Valid data types for \"Gray\" are UInt8 (a.k.a. byte), UInt16, and UInt32\nPath: {path_ref:?}\nColortype: {color_type:?}\n{dtype_str}"
                 ),
