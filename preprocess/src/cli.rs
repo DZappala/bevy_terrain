@@ -76,7 +76,7 @@ impl PreprocessBar<'_> {
         }
     }
 
-    pub(crate) fn callback(&self) -> &ProgressCallback {
+    pub(crate) fn callback(&'_ self) -> &'_ ProgressCallback<'_> {
         self.callback.as_ref()
     }
 

@@ -194,7 +194,7 @@ impl GpuTileAtlas {
                     bytes_per_row: Some(attachment.buffer_info.actual_side_size),
                     rows_per_image: Some(attachment.buffer_info.texture_size),
                 },
-                attachment.buffer_info.extend_3d(0),
+                attachment.buffer_info.extend_3d(1),
             );
         }
     }

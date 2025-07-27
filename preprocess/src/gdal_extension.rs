@@ -9,14 +9,12 @@ use gdal::{
     errors::{GdalError, Result as GdalResult},
 };
 use gdal_sys::{
-    CPLErr, CPLErrorReset, CPLGetLastErrorMsg, CPLGetLastErrorNo, GDALAccess::GA_Update,
+    CPLErr, CPLErrorReset, CPLGetLastErrorMsg, CPLGetLastErrorNo, GDALAccess,
     GDALChunkAndWarpImage, GDALCreateWarpOptions, GDALDestroyWarpOperation, GDALDestroyWarpOptions,
     GDALDummyProgress, GDALFillNodata, GDALOpenShared, GDALResampleAlg, GDALSuggestedWarpOutput,
     GDALWarpOperationH,
 };
 use itertools::Itertools;
-#[cfg(not(windows))]
-use std::os::unix::ffi::OsStrExt;
 
 #[cfg(windows)]
 use std::os::windows::ffi::OsStrExt;
@@ -98,7 +96,7 @@ pub fn warp(
     options.hDstDS = dst.c_dataset();
     // options.eResampleAlg = GDALResampleAlg::GRA_NearestNeighbour;
     options.eResampleAlg = GDALResampleAlg::GRA_Bilinear;
-    options.dfWarpMemoryLimit = 1024f64.powi(2) * 8.; // Todo: figure out, why this affects reprojection at the poles
+    options.dfWarpMemoryLimit = 2048f64.powi(2) * 8.; // Todo: figure out, why this affects reprojection at the poles
 
     // for some reason this is not automatically recognized, so we have to set it manually
     options.eWorkingDataType = context.data_type as u32;
@@ -320,7 +318,7 @@ impl SharedReadOnlyDataset {
     }
     pub fn get(&self) -> &Dataset {
         self.pool.get_or(|| unsafe {
-            Dataset::from_c_dataset(GDALOpenShared(self.path.as_ptr(), GA_Update))
+            Dataset::from_c_dataset(GDALOpenShared(self.path.as_ptr(), GDALAccess::GA_Update))
         })
     }
 }

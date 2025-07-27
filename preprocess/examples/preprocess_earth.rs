@@ -18,13 +18,13 @@ fn main() {
     }
 
     let args = Cli {
-        src_path: vec!["assets/source_data/gebcoNEW.tif".into()],
+        src_path: vec!["assets/source_data/gebco/out.tif".into()],
         terrain_path: "assets/terrains/earth".into(),
-        temp_path: None,
+        temp_path: Some("tmp".into()),
         overwrite: true,
-        no_data: PreprocessNoData::Source,
+        no_data: PreprocessNoData::NoData(0.0),
         data_type: PreprocessDataType::DataType(GdalDataType::Float32),
-        fill_radius: 16.0,
+        fill_radius: 0.0,
         create_mask: true,
         lod_count: None,
         attachment_label: AttachmentLabel::Height,
@@ -39,13 +39,13 @@ fn main() {
     preprocess(src_dataset, &mut context);
 
     let args = Cli {
-        src_path: vec!["assets/source_data/Earth.tif".into()],
+        src_path: vec!["assets/source_data/true_marble/out.tif".into()],
         terrain_path: "assets/terrains/earth".into(),
-        temp_path: None,
+        temp_path: Some("tmp".into()),
         overwrite: true,
         no_data: PreprocessNoData::NoData(0.0),
         data_type: PreprocessDataType::DataType(GdalDataType::UInt8),
-        fill_radius: 16.0,
+        fill_radius: 0.0,
         create_mask: false,
         lod_count: Some(7),
         attachment_label: AttachmentLabel::Custom("albedo".to_string()),

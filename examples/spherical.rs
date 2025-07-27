@@ -65,18 +65,10 @@ fn initialize(
     asset_server: Res<AssetServer>,
 ) {
     let gradient1 = asset_server.load("textures/gradient1.png");
-    images.load_image(
-        &gradient1,
-        TextureDimension::D2,
-        TextureFormat::Rgba8UnormSrgb,
-    );
+    images.load_image(&gradient1, TextureDimension::D2, TextureFormat::Rgba8Unorm);
 
     let gradient2 = asset_server.load("textures/gradient2.png");
-    images.load_image(
-        &gradient2,
-        TextureDimension::D2,
-        TextureFormat::Rgba8UnormSrgb,
-    );
+    images.load_image(&gradient2, TextureDimension::D2, TextureFormat::Rgba8Unorm);
 
     let mut view = Entity::PLACEHOLDER;
 

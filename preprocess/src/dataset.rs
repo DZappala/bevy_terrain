@@ -137,28 +137,6 @@ impl PreprocessContext {
         create_mask: bool,
         overwrite: bool,
     ) -> PreprocessResult<(Dataset, Self)> {
-        //let mut src_datasets = src_path
-        // .iter()
-        // .flat_map(|src_path| {
-        //     if src_path.is_dir() {
-        //         iter_directory(src_path).collect_vec()
-        //     } else {
-        //         vec![src_path.clone()]
-        //     }
-        // })
-        // .filter(|path| {
-        //     let path = path.to_str().unwrap();
-        //     path.ends_with(".tif") || path.ends_with(".tiff")
-        // })
-        // .map(|path| Dataset::open(path).unwrap())
-        // .collect_vec();
-        //
-        // let src_dataset = if src_datasets.len() == 1 {
-        //     src_datasets.remove(0)
-        // } else {
-        //     build_vrt(None, &src_datasets, None)?
-        // };
-
         let mut paths = src_path
             .iter()
             .flat_map(|p| {
@@ -213,7 +191,6 @@ impl PreprocessContext {
         };
 
         let tile_dir = terrain_path.join(String::from(&attachment_label));
-
         let temp_dir = match temp_dir {
             None => tile_dir.join("temp"),
             Some(path) => path,
@@ -340,6 +317,7 @@ pub fn delete_directory(directory: &Path) {
     // This method has issues with deleting hidden files on MacOS
     // let _ = fs::remove_dir_all(directory).unwrap();
 
+    // HACK: We really shouldn't be calling rm -rf directly.
     Command::new("rm")
         .arg("-rf")
         .arg(directory)

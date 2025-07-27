@@ -227,10 +227,12 @@ impl GpuAttachment {
             sample_count: 1,
             dimension: TextureDimension::D2,
             format: buffer_info.format.processing_format(),
+            // WARN: Double check this, had to turn off storage binding due to issue with vulkan.
+            // When using storage binding, srgb is implicitly turned on, which is not what we want.
             usage: TextureUsages::COPY_DST
                 | TextureUsages::COPY_SRC
-                | TextureUsages::TEXTURE_BINDING
-                | TextureUsages::STORAGE_BINDING,
+                | TextureUsages::TEXTURE_BINDING,
+            // | TextureUsages::STORAGE_BINDING,
             view_formats: &[buffer_info.format.render_format()],
         });
 

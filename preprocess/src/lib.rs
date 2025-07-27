@@ -19,9 +19,10 @@ use crate::{
 };
 use bevy_terrain::prelude::{AttachmentLabel, TerrainConfig, TerrainShape, TileCoordinate};
 use gdal::{
-    Dataset,
-    raster::{GdalDataType, GdalType},
+    Dataset, DatasetOptions, DriverManager, GdalOpenFlags, Metadata,
+    raster::{Buffer, GdalDataType, GdalType, RasterCreationOptions, ResampleAlg},
 };
+use itertools::Itertools;
 use num::NumCast;
 use std::time::Instant;
 
@@ -33,32 +34,44 @@ pub mod prelude {
     };
 }
 
+// TODO: A lot of this code can be made multi-threaded. This may require rewriting some of the GDAL
+// algroithms into this crate which would have the added benefit of removing the dependency on
+// gdal-sys. (which is a headache to work with in general) Especially since we already depend on
+// tiff.
+
+// FIXME: It feels weird for this to be a generic function when the context is still being passed
+// arround. Would it not make more sense to match on the dataset type at the call site?
+// (i.e. locality of behavior)
+// FIXME: Evaluate side effects of mutable param
 fn preprocess_gen<T: Copy + GdalType + PartialEq + NumCast + Send + Sync>(
     src_dataset: Dataset,
     context: &mut PreprocessContext,
 ) {
+    // FIXME: if the user chooses *not* to overwrite and the requisite tile files already exist, we should simply skip that data set.
+    // should check if a file exists and only. This way, when running the preprocessor again, we
+    // can let the user avoid re-processing a dataset that has already been processed. (if they so
+    // choose)
     if context.overwrite {
         clear_directory(&context.tile_dir);
     }
 
     clear_directory(&context.temp_dir);
-
     let start_preprocessing = Instant::now();
 
+    // FIXME: Handle shapes from the context instead of hardcoding it. Simply propogate terrain
+    // shape into each context function
     // let is_planar = matches!(context.shape, Some(TerrainShape::Plane { .. }));
     let is_planar = true;
-    
+
+    // FIXME: Handle unwraps gracefully rather than panicking.
     let progress_bar = PreprocessBar::new("Reprojecting".to_string());
-    
-    // Handle planar differently than spherical
     let faces = if is_planar {
         // For planar, just work with face 0 but ensure we generate a grid of tiles
-       reproject_planar::<T>(src_dataset, context, Some(progress_bar.callback())).unwrap()
+        reproject_planar::<T>(src_dataset, context, Some(progress_bar.callback())).unwrap()
     } else {
         // Original spherical reprojection
         reproject::<T>(src_dataset, context, Some(progress_bar.callback())).unwrap()
     };
-    
     progress_bar.finish();
 
     let progress_bar = PreprocessBar::new("Splitting".to_string());
@@ -74,7 +87,6 @@ fn preprocess_gen<T: Copy + GdalType + PartialEq + NumCast + Send + Sync>(
     progress_bar.finish();
 
     delete_directory(&context.temp_dir);
-
     save_terrain_config(tiles, context);
 
     println!("Preprocessing took: {:?}", start_preprocessing.elapsed());
@@ -108,6 +120,7 @@ fn save_terrain_config(tiles: Vec<TileCoordinate>, context: &PreprocessContext) 
     let mut config = TerrainConfig::load_file(&file_path).unwrap_or_default();
 
     // config.shape = TerrainShape::WGS84;
+    // FIXME: This value shouldn't be hardcoded, and should be gotten from the context.
     config.shape = TerrainShape::Plane {
         side_length: 86400.,
     };

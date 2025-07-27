@@ -115,10 +115,10 @@ fn compute_tiles_to_downsample(input_tiles: &[TileCoordinate]) -> Vec<Vec<TileCo
 
     while !new_tiles.is_empty() {
         for tile in new_tiles.drain().collect_vec() {
-            if let Some(parent) = tile.parent() {
-                if tiles_to_downsample.insert(parent) {
-                    new_tiles.insert(parent);
-                }
+            if let Some(parent) = tile.parent()
+                && tiles_to_downsample.insert(parent)
+            {
+                new_tiles.insert(parent);
             }
         }
     }

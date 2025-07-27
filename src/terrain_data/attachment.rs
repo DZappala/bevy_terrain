@@ -3,7 +3,11 @@ use bevy::render::render_resource::TextureFormat;
 use bytemuck::cast_slice;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Error, path::PathBuf, str::FromStr};
+use std::{
+    fmt::{self, Debug as DebugTrait, Error, Formatter},
+    path::PathBuf,
+    str::FromStr,
+};
 use strum_macros::EnumIter;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Hash, Default)]
@@ -151,6 +155,18 @@ pub enum AttachmentData {
     R32F(Vec<f32>),
 }
 
+impl DebugTrait for AttachmentData {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            AttachmentData::Rgba8U(_) => write!(f, "Rgba8U()"),
+            AttachmentData::R16U(_) => write!(f, "R16U()"),
+            AttachmentData::R16I(_) => write!(f, "R16I()"),
+            AttachmentData::Rg16U(_) => write!(f, "Rg16U()"),
+            AttachmentData::R32F(_) => write!(f, "R32F()"),
+        }
+    }
+}
+
 impl AttachmentData {
     pub(crate) fn from_bytes(data: &[u8], format: AttachmentFormat) -> Self {
         match format {
@@ -184,7 +200,7 @@ pub struct AttachmentTile {
     pub(crate) label: AttachmentLabel,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct AttachmentTileWithData {
     pub(crate) atlas_index: u32,
     pub(crate) label: AttachmentLabel,

@@ -76,26 +76,36 @@ impl AssetLoader for TiffLoader {
             ),
         };
 
-        // let img_result: Result<Image, Box<dyn Any + Send>> = catch_unwind(|| -> Image {
-        //     Image::new(
-        //         Extent3d {
-        //             width,
-        //             height,
-        //             depth_or_array_layers: 1,
-        //         },
-        //         TextureDimension::D2,
-        //         data.clone(),
-        //         tex_fmt,
-        //         RenderAssetUsages::MAIN_WORLD,
-        //     )
-        // });
+        let (width, height, data) = if tex_fmt == TextureFormat::Rgba8Unorm {
+            let (_, _, third, fourth) = {
+                let path = ctx.path().file_name().unwrap().to_str().unwrap();
+                let split: Vec<&str> = path.split('_').collect();
 
-        // match img_result {
-        //     Ok(x) => Ok(x),
-        //     Err(_) => panic!(
-        //         "Failed to convert Image:\n\tpath: {path_ref:?}\n\tcolortype {color_type:?}\n\tdtype {dtype_str:?}"
-        //     ),
-        // }
+                assert!(split.len() == 4);
+                (split[0], split[1], split[2], split[3])
+            };
+            let mut data = data.clone();
+            let mut width = width;
+            let mut height = height;
+            // drain the first two rows of data
+            if fourth == "0" {
+                data.drain(0..(width as usize * 2 * size_of_val(data.first().unwrap())));
+                height -= 2;
+            }
+
+            // drain the first two pixels of each row (equivalent to the first two columns)
+            if third == "0" {
+                data.chunks_mut(width as usize).for_each(|row| {
+                    row.to_vec()
+                        .drain(0..(2 * size_of_val(row.first().unwrap())));
+                });
+
+                width -= 2;
+            }
+            (width, height, data)
+        } else {
+            (width, height, data)
+        };
 
         let mut image = Image::new_uninit(
             Extent3d {
