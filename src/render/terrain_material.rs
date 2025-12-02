@@ -13,7 +13,7 @@ use crate::{
 use bevy::{
     asset::UntypedAssetId,
     ecs::{component::Tick, entity::EntityHashMap},
-    pbr::ExtractMeshesSet,
+    pbr::MeshExtractionSystems,
     prelude::ResMut,
 };
 use bevy::{
@@ -26,7 +26,7 @@ use bevy::{
         Extract,
         Render,
         RenderApp,
-        RenderSet,
+        RenderSystems,
         // render_asset::{RenderAssetPlugin, RenderAssets, prepare_assets},
         render_phase::{
             AddRenderCommand, DrawFunctions, PhaseItemExtraIndex, SetItemPipeline,
@@ -482,9 +482,12 @@ where
             .init_resource::<SpecializedRenderPipelines<TerrainRenderPipeline<M>>>()
             .add_systems(
                 ExtractSchedule,
-                extract_terrain_materials::<M>.after(ExtractMeshesSet),
+                extract_terrain_materials::<M>.after(MeshExtractionSystems),
             )
-            .add_systems(Render, queue_terrain::<M>.in_set(RenderSet::QueueMeshes));
+            .add_systems(
+                Render,
+                queue_terrain::<M>.in_set(RenderSystems::QueueMeshes),
+            );
     }
 
     fn finish(&self, app: &mut App) {

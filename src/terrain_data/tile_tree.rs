@@ -170,7 +170,7 @@ impl TileTree {
                 Readback::buffer(approximate_height_buffer.clone_weak()),
             ))
             .observe(Self::approximate_height_readback);
-        
+
         let face_size = config.shape.face_size();
 
         //let planar_distancce_scale = match config.shape {
@@ -272,11 +272,11 @@ impl TileTree {
         self.view_face = view_coordinate.face;
 
         for face in 0..self.shape.face_count() {
-            let view_coordinate = view_coordinate.project_to_face(face);
-            self.view_coordinates[face as usize] = view_coordinate;
+            let view_coordinate2 = view_coordinate.project_to_face(face);
+            self.view_coordinates[face as usize] = view_coordinate2;
 
             for lod in 0..self.lod_count {
-                let origin = self.compute_origin(view_coordinate, lod);
+                let origin = self.compute_origin(view_coordinate2, lod);
 
                 for (x, y) in iproduct!(0..self.tree_size, 0..self.tree_size) {
                     let tile_coordinate = TileCoordinate {
@@ -286,7 +286,7 @@ impl TileTree {
                     };
 
                     let tile_distance =
-                        self.compute_tile_distance(tile_coordinate, view_coordinate);
+                        self.compute_tile_distance(tile_coordinate, view_coordinate2);
                     let load_distance = self.load_distance / (tile_coordinate.lod as f64).exp2();
 
                     let state = if lod == 0 || tile_distance < load_distance {

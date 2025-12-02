@@ -66,7 +66,11 @@ fn compute_world_coordinate(coordinate: Coordinate, tile_index: u32, tile_uv: ve
 
 #ifdef FRAGMENT
 fn compute_world_coordinate(coordinate: Coordinate, height: f32, view_distance: f32) -> WorldCoordinate {
-    if high_precision(view_distance) { return compute_world_coordinate_precise(coordinate, height); } else {                               return compute_world_coordinate_imprecise(coordinate, height); }
+    if high_precision(view_distance) { 
+        return compute_world_coordinate_precise(coordinate, height); 
+    } else {                               
+        return compute_world_coordinate_imprecise(coordinate, height); 
+    }
 }
 #endif
 
