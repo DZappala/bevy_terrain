@@ -11,12 +11,13 @@ use crate::{
 };
 use bevy::{
     asset::RenderAssetUsages,
+    camera::visibility::NoFrustumCulling,
     platform::collections::{HashMap, HashSet},
     prelude::*,
-    render::{render_resource::*, storage::ShaderStorageBuffer, view::NoFrustumCulling},
+    render::{render_resource::*, storage::ShaderStorageBuffer},
     tasks::Task,
 };
-use big_space::prelude::*;
+use big_space::prelude::CellCoord;
 use std::collections::VecDeque;
 
 /// The current state of a tile of a [`TileAtlas`].
@@ -57,7 +58,7 @@ struct TileState {
 /// and in shaders by the GPU.
 #[derive(Component)]
 #[require(Transform, Visibility, NoFrustumCulling, DefaultLoader)]
-#[cfg_attr(feature = "high_precision", require(GridCell))]
+#[cfg_attr(feature = "high_precision", require(CellCoord))]
 pub struct TileAtlas {
     pub(crate) attachments: HashMap<AttachmentLabel, Attachment>, // stores the attachment data
     tile_states: HashMap<TileCoordinate, TileState>,

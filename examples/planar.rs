@@ -3,9 +3,8 @@ use bevy::{
         App, Asset, AssetServer, Commands, DefaultPlugins, Entity, Handle, Image, Material,
         PluginGroup, Res, ResMut, Startup, Transform, TransformPlugin, TypePath, Vec3, vec,
     },
-    render::render_resource::{
-        AsBindGroup, ShaderRef, ShaderType, TextureDimension, TextureFormat,
-    },
+    render::render_resource::{AsBindGroup, ShaderType, TextureDimension, TextureFormat},
+    shader::ShaderRef,
 };
 use bevy_terrain::prelude::{
     BigSpaceCommands, DebugCameraController, Grid, LoadingImages, OrbitalCameraController,

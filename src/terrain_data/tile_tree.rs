@@ -7,11 +7,11 @@ use crate::{
 };
 use bevy::{
     asset::RenderAssetUsages,
+    camera::primitives::Frustum,
     math::{DVec2, DVec3},
     prelude::*,
     render::{
         gpu_readback::{Readback, ReadbackComplete},
-        primitives::Frustum,
         render_resource::{BufferUsages, ShaderType},
         storage::ShaderStorageBuffer,
     },
@@ -167,7 +167,7 @@ impl TileTree {
         commands
             .spawn((
                 TerrainViewKey(terrain_view),
-                Readback::buffer(approximate_height_buffer.clone_weak()),
+                Readback::buffer(approximate_height_buffer.clone()),
             ))
             .observe(Self::approximate_height_readback);
 
@@ -336,7 +336,7 @@ impl TileTree {
         camera: Query<&Camera>,
         mut tile_trees: ResMut<TerrainViewComponents<TileTree>>,
         #[cfg(feature = "high_precision")] grids: Grids,
-        #[cfg(feature = "high_precision")] views: Query<(&Transform, &GridCell)>,
+        #[cfg(feature = "high_precision")] views: Query<(&Transform, &CellCoord)>,
         #[cfg(not(feature = "high_precision"))] view_transforms: Query<&Transform>,
     ) {
         for (&(_, view), tile_tree) in tile_trees.iter_mut() {
@@ -347,7 +347,7 @@ impl TileTree {
             // Todo: transform should be global transform?
 
             let clip_from_view = camera.clip_from_view();
-            let world_from_view = transform.compute_matrix();
+            let world_from_view = transform.to_matrix();
             let clip_from_world = clip_from_view * world_from_view.inverse();
 
             let half_spaces = Frustum::from_clip_from_world(&clip_from_world)
@@ -406,12 +406,12 @@ impl TileTree {
     }
 
     pub fn approximate_height_readback(
-        trigger: Trigger<ReadbackComplete>,
+        readback_complete: On<ReadbackComplete>,
         terrain_view: Query<&TerrainViewKey>,
         mut tile_trees: ResMut<TerrainViewComponents<TileTree>>,
     ) {
-        let TerrainViewKey(terrain_view) = terrain_view.get(trigger.target()).unwrap();
+        let TerrainViewKey(terrain_view) = terrain_view.get(readback_complete.entity).unwrap();
         let tile_tree = tile_trees.get_mut(terrain_view).unwrap();
-        tile_tree.approximate_height = trigger.event().to_shader_type();
+        tile_tree.approximate_height = readback_complete.event().to_shader_type();
     }
 }

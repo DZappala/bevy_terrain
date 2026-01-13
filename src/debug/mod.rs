@@ -9,7 +9,7 @@ use crate::{
 use bevy::{
     prelude::*,
     render::{Extract, RenderApp, render_resource::*},
-    window::PrimaryWindow,
+    window::{CursorOptions, PrimaryWindow},
 };
 mod approximation_debug;
 mod camera;
@@ -294,12 +294,18 @@ pub fn update_view_parameter(
         if input.pressed(KeyCode::KeyV) {
             tile_tree.blend_distance -= 0.25 * face_size;
             tile_tree.load_distance -= 0.25 * face_size;
-            info!("Blend and load distance: {}.", tile_tree.blend_distance / face_size);
+            info!(
+                "Blend and load distance: {}.",
+                tile_tree.blend_distance / face_size
+            );
         }
         if input.pressed(KeyCode::KeyB) {
             tile_tree.blend_distance += 0.25 * face_size;
             tile_tree.load_distance += 0.25 * face_size;
-            info!("Blend and load distance: {}.", tile_tree.blend_distance / face_size);
+            info!(
+                "Blend and load distance: {}.",
+                tile_tree.blend_distance / face_size
+            );
         }
 
         if input.pressed(KeyCode::KeyN) {
@@ -338,9 +344,13 @@ pub(crate) fn debug_lighting(mut commands: Commands) {
     });
 }
 
-pub fn debug_window(mut window: Query<&mut Window, With<PrimaryWindow>>) {
-    let mut window = window.single_mut().unwrap();
-    window.cursor_options.visible = true; // false;
+pub fn debug_window(
+    // mut window: Query<&mut Window, With<PrimaryWindow>>
+    mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>,
+) {
+    // let mut window = window.single_mut().unwrap();
+    let mut cursor = cursor.single_mut().unwrap();
+    cursor.visible = true; // false;
 }
 
 #[derive(Resource, Default)]

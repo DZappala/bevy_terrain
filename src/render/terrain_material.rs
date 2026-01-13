@@ -13,8 +13,9 @@ use crate::{
 use bevy::{
     asset::UntypedAssetId,
     ecs::{component::Tick, entity::EntityHashMap},
-    pbr::ExtractMeshesSet,
+    pbr::MeshExtractionSystems,
     prelude::ResMut,
+    shader::{ShaderDefVal, ShaderRef},
 };
 use bevy::{
     pbr::{
@@ -26,7 +27,7 @@ use bevy::{
         Extract,
         Render,
         RenderApp,
-        RenderSet,
+        RenderSystems,
         // render_asset::{RenderAssetPlugin, RenderAssets, prepare_assets},
         render_phase::{
             AddRenderCommand, DrawFunctions, PhaseItemExtraIndex, SetItemPipeline,
@@ -290,9 +291,11 @@ impl<M: Material> FromWorld for TerrainRenderPipeline<M> {
         Self {
             view_layout: mesh_pipeline
                 .get_view_layout(MeshPipelineViewLayoutKey::empty())
+                .main_layout
                 .clone(),
             view_layout_multisampled: mesh_pipeline
                 .get_view_layout(MeshPipelineViewLayoutKey::MULTISAMPLED)
+                .main_layout
                 .clone(),
             terrain_layout: prepass_pipelines.terrain_layout.clone(),
             terrain_view_layout: prepass_pipelines.terrain_view_layout.clone(),
@@ -333,7 +336,7 @@ impl<M: Material> SpecializedRenderPipeline for TerrainRenderPipeline<M> {
             push_constant_ranges: default(),
             vertex: VertexState {
                 shader: self.vertex_shader.clone(),
-                entry_point: "vertex".into(),
+                entry_point: Some("vertex".into()),
                 shader_defs: vertex_shader_defs,
                 buffers: Vec::new(),
             },
@@ -349,7 +352,7 @@ impl<M: Material> SpecializedRenderPipeline for TerrainRenderPipeline<M> {
             fragment: Some(FragmentState {
                 shader: self.fragment_shader.clone(),
                 shader_defs: fragment_shader_defs,
-                entry_point: "fragment".into(),
+                entry_point: Some("fragment".into()),
                 targets: vec![Some(ColorTargetState {
                     format: TextureFormat::bevy_default(),
                     blend: Some(BlendState::REPLACE),
@@ -385,12 +388,12 @@ impl<M: Material> SpecializedRenderPipeline for TerrainRenderPipeline<M> {
 
 /// The draw function of the terrain. It sets the pipeline and the bind groups and then issues the
 /// draw call.
-pub(crate) type DrawTerrain<M> = (
+pub(crate) type DrawTerrain = (
     SetItemPipeline,
     SetMeshViewBindGroup<0>,
     SetTerrainBindGroup<1>,
     SetTerrainViewBindGroup<2>,
-    SetMaterialBindGroup<M, 3>,
+    SetMaterialBindGroup<3>,
     DrawTerrainCommand,
 );
 
@@ -409,7 +412,7 @@ pub(crate) fn queue_terrain<M: Material>(
 ) where
     M::Data: PartialEq + Eq + Hash + Clone,
 {
-    let draw_function = draw_functions.read().get_id::<DrawTerrain<M>>().unwrap();
+    let draw_function = draw_functions.read().get_id::<DrawTerrain>().unwrap();
 
     for (view, msaa) in &mut views {
         let Some(terrain_phase) = terrain_phases.get_mut(&RetainedViewEntity {
@@ -478,13 +481,16 @@ where
 
         app.sub_app_mut(RenderApp)
             .init_resource::<TerrainRenderMaterialInstances>()
-            .add_render_command::<TerrainItem, DrawTerrain<M>>()
+            .add_render_command::<TerrainItem, DrawTerrain>()
             .init_resource::<SpecializedRenderPipelines<TerrainRenderPipeline<M>>>()
             .add_systems(
                 ExtractSchedule,
-                extract_terrain_materials::<M>.after(ExtractMeshesSet),
+                extract_terrain_materials::<M>.after(MeshExtractionSystems),
             )
-            .add_systems(Render, queue_terrain::<M>.in_set(RenderSet::QueueMeshes));
+            .add_systems(
+                Render,
+                queue_terrain::<M>.in_set(RenderSystems::QueueMeshes),
+            );
     }
 
     fn finish(&self, app: &mut App) {

@@ -1,8 +1,6 @@
 use crate::shaders::DEPTH_COPY_SHADER;
 use bevy::{
-    core_pipeline::{
-        core_3d::CORE_3D_DEPTH_FORMAT, fullscreen_vertex_shader::fullscreen_shader_vertex_state,
-    },
+    core_pipeline::{FullscreenShader, core_3d::CORE_3D_DEPTH_FORMAT},
     ecs::query::QueryItem,
     prelude::{
         Camera, Camera3d, Commands, Component, DirectAssetAccessExt, Entity, FromWorld, Msaa,
@@ -198,6 +196,8 @@ pub fn prepare_terrain_depth_textures(
 #[derive(Resource)]
 pub struct DepthCopyPipeline {
     layout: BindGroupLayout,
+    // TOOD: eval. if we need to store this
+    // fullscreen_shader: FullscreenShader,
     id: CachedRenderPipelineId,
 }
 
@@ -213,16 +213,18 @@ impl FromWorld for DepthCopyPipeline {
                 (texture_depth_2d_multisampled(),),
             ),
         );
+        let fullscreen_shader = world.resource::<FullscreenShader>().clone();
+        let vertex_state = fullscreen_shader.to_vertex_state();
 
         let id = pipeline_cache.queue_render_pipeline(RenderPipelineDescriptor {
             label: None,
             layout: vec![layout.clone()],
             push_constant_ranges: Vec::new(),
-            vertex: fullscreen_shader_vertex_state(),
+            vertex: vertex_state,
             fragment: Some(FragmentState {
                 shader: world.load_asset(DEPTH_COPY_SHADER),
                 shader_defs: vec![],
-                entry_point: "fragment".into(),
+                entry_point: Some("fragment".into()),
                 targets: vec![],
             }),
             primitive: Default::default(),
@@ -240,7 +242,11 @@ impl FromWorld for DepthCopyPipeline {
             zero_initialize_workgroup_memory: false,
         });
 
-        Self { layout, id }
+        Self {
+            layout,
+            // fullscreen_shader,
+            id,
+        }
     }
 }
 
@@ -257,12 +263,13 @@ impl ViewNode for TerrainPass {
         &'static TerrainViewDepthTexture,
     );
 
-    fn run<'w>(
+    fn run<'w, 's>(
         &self,
         _graph: &mut RenderGraphContext,
         context: &mut RenderContext<'w>,
         (render_view, main_view, camera, target, depth, terrain_depth): QueryItem<
             'w,
+            's,
             Self::ViewQuery,
         >,
         world: &'w World,

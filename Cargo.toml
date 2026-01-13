@@ -30,9 +30,7 @@ anyhow = "1.*"
 serde = "1.*"
 async-channel = "2.*"
 bevy = "0.*"
-bevy_common_assets = { git = "https://github.com/kurtkuehnert/bevy_common_assets", branch = "bevy-0.16", features = [
-  "ron",
-] }
+bevy_common_assets = { version = "0.14", features = ["ron"] }
 ndarray = "0.*"
 itertools = "0.*"
 derive_more = { version = "2.*", features = ["from"] }

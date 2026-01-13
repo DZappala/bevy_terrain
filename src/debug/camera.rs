@@ -8,7 +8,7 @@ use bevy::{
     input::mouse::MouseMotion,
     math::DVec3,
     prelude::{
-        ButtonInput, Camera3d, Component, Entity, EulerRot, EventReader, KeyCode, Quat, Query,
+        ButtonInput, Camera3d, Component, Entity, EulerRot, KeyCode, MessageReader, Quat, Query,
         Reflect, Res, Time, Vec2, default, info,
     },
 };
@@ -56,7 +56,7 @@ pub fn debug_camera_controller(
     #[cfg(feature = "high_precision")] grids: Grids,
     time: Res<Time>,
     keyboard: Res<ButtonInput<KeyCode>>,
-    mut mouse_move: EventReader<MouseMotion>,
+    mut mouse_move: MessageReader<MouseMotion>,
     #[cfg(feature = "high_precision")] mut camera: Query<(
         Entity,
         CellTransform,

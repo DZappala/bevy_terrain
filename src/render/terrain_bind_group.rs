@@ -17,9 +17,8 @@ use bevy::{
         render_asset::RenderAssets,
         render_phase::{PhaseItem, RenderCommand, RenderCommandResult, TrackedRenderPass},
         render_resource::{
-            AsBindGroup, BindGroup, BindGroupEntries, Buffer, BufferUsages,
-            FilterMode, Sampler, SamplerDescriptor, ShaderType, TextureUsages, TextureView,
-            TextureViewDescriptor,
+            AsBindGroup, BindGroup, BindGroupEntries, Buffer, BufferUsages, FilterMode, Sampler,
+            SamplerDescriptor, ShaderType, TextureUsages, TextureView, TextureViewDescriptor,
         },
         renderer::RenderDevice,
         storage::{GpuShaderStorageBuffer, ShaderStorageBuffer},
@@ -250,10 +249,10 @@ impl<const I: usize, P: PhaseItem> RenderCommand<P> for SetTerrainBindGroup<I> {
     type ItemQuery = ();
 
     #[inline]
-    fn render<'w>(
+    fn render<'w, 's>(
         item: &P,
-        _: ROQueryItem<'w, Self::ViewQuery>,
-        _: Option<ROQueryItem<'w, Self::ItemQuery>>,
+        _: ROQueryItem<'w, 's, Self::ViewQuery>,
+        _: Option<ROQueryItem<'w, 's, Self::ItemQuery>>,
         gpu_terrains: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {

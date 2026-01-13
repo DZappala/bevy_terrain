@@ -1,11 +1,8 @@
 use bevy::{
-    asset::{AssetLoader, LoadContext, io::Reader},
+    asset::{AssetLoader, LoadContext, RenderAssetUsages, io::Reader},
     image::ImageLoaderError,
     prelude::{Image, Result, Vec},
-    render::{
-        render_asset::RenderAssetUsages,
-        render_resource::{Extent3d, TextureDimension, TextureFormat},
-    },
+    render::render_resource::{Extent3d, TextureDimension, TextureFormat},
 };
 use bytemuck::cast_slice;
 use std::io::Cursor;
@@ -45,6 +42,7 @@ impl AssetLoader for TiffLoader {
             DecodingResult::I16(data) => (cast_slice(data).to_vec(), "I16"),
             DecodingResult::I32(data) => (cast_slice(data).to_vec(), "I32"),
             DecodingResult::I64(data) => (cast_slice(data).to_vec(), "I64"),
+            DecodingResult::F16(_f16s) => unimplemented!(),
         };
 
         let path_ref = ctx.asset_path();

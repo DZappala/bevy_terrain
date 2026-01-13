@@ -1,5 +1,6 @@
-use bevy::window::WindowResolution;
-use bevy::{prelude::*, reflect::TypePath, render::render_resource::*};
+#[cfg(not(feature = "wesl"))]
+use bevy::shader::ShaderRef;
+use bevy::{prelude::*, reflect::TypePath, render::render_resource::*, window::WindowResolution};
 use bevy_terrain::prelude::{
     BigSpaceCommands, DebugCameraController, Grid, LoadingImages, OrbitalCameraController,
     SpawnTerrainCommandsExt, TerrainDebugPlugin, TerrainMaterialPlugin, TerrainPickingPlugin,
@@ -40,7 +41,7 @@ fn main() {
             DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        resolution: WindowResolution::new(1920.0, 1080.0),
+                        resolution: WindowResolution::new(1920, 1080),
                         ..default()
                     }),
                     ..default()

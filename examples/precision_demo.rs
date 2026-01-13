@@ -8,8 +8,8 @@ use bevy_terrain::{
     math::{Coordinate, SurfaceApproximation},
     prelude::*,
 };
-use itertools::{iproduct, Itertools};
-use rand::{prelude::ThreadRng, rng, Rng};
+use itertools::{Itertools, iproduct};
+use rand::{Rng, prelude::ThreadRng, rng};
 
 #[derive(Default)]
 struct ViewError {
@@ -92,13 +92,13 @@ fn compute_errors() -> Errors {
             let cast_error = sample_position.distance(sample_position.as_vec3().as_dvec3());
 
             taylor1_max = taylor1_max.max(taylor1_error);
-            taylor1_avg = taylor1_avg + taylor1_error;
+            taylor1_avg += taylor1_error;
             taylor2_max = taylor2_max.max(taylor2_error);
-            taylor2_avg = taylor2_avg + taylor2_error;
+            taylor2_avg += taylor2_error;
             f32_max = f32_max.max(f32_error);
-            f32_avg = f32_avg + f32_error;
+            f32_avg += f32_error;
             cast_max = cast_max.max(cast_error);
-            cast_avg = cast_avg + cast_error;
+            cast_avg += cast_error;
             max_error = max_error.max(taylor2_error);
         }
 
@@ -108,10 +108,10 @@ fn compute_errors() -> Errors {
         });
     }
 
-    taylor1_avg = taylor1_avg / count as f64;
-    taylor2_avg = taylor2_avg / count as f64;
-    f32_avg = f32_avg / count as f64;
-    cast_avg = cast_avg / count as f64;
+    taylor1_avg /= count as f64;
+    taylor2_avg /= count as f64;
+    f32_avg /= count as f64;
+    cast_avg /= count as f64;
 
     println!(
         "With a threshold factor of {} and an view LOD of {view_lod}, the error in a sample distance of {:.4} m around the camera looks like this.",
@@ -149,7 +149,7 @@ fn main() {
             DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        resolution: WindowResolution::new(1920.0, 1080.0),
+                        resolution: WindowResolution::new(1920, 1080),
                         ..default()
                     }),
                     ..default()
