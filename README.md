@@ -8,7 +8,7 @@
 -->
 
 Bevy Terrain is a plugin for rendering terrains with the Bevy game engine.
-This plugin supports planar[^1] and spherical/ellipsoidal terrains of (almost) any size and resolution.
+This plugin supports planar and spherical/ellipsoidal terrains of (almost) any size and resolution.
 
 ![](https://user-images.githubusercontent.com/51823519/202845032-0537e929-b13c-410b-8072-4c5b5df9830d.png)
 (Data Source: Federal Office of Topography, [©swisstopo](https://www.swisstopo.admin.ch/en/home.html))
@@ -128,5 +128,3 @@ at your option.
 
 Unless explicitly stated otherwise, any contribution intentionally submitted for inclusion in the work, as
 defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
-
-[^1]: Currently, the support for planar terrain rendering is broken.
