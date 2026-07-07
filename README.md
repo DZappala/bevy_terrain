@@ -7,13 +7,18 @@
 ![docs.rs](https://img.shields.io/docsrs/bevy_terrain)
 -->
 
+![Note]
+This is a fork of the original project which maintains planar terrain rendering. It has not been merged yet due to 
+on-going developement by the orignal author, but aim's to maintain lockstep with the primary API.
+
 Bevy Terrain is a plugin for rendering terrains with the Bevy game engine.
 This plugin supports planar and spherical/ellipsoidal terrains of (almost) any size and resolution.
 
 ![](https://user-images.githubusercontent.com/51823519/202845032-0537e929-b13c-410b-8072-4c5b5df9830d.png)
 (Data Source: Federal Office of Topography, [©swisstopo](https://www.swisstopo.admin.ch/en/home.html))
 
-**Warning:** This plugin is still in early development, so expect the API to change and possibly break your existing
+[!WARNING]
+This plugin is still in early development, so expect the API to change and possibly break your existing
 code.
 
 Bevy Terrain was developed as part of my [bachelor thesis](https://github.com/kurtkuehnert/terrain_renderer) and
