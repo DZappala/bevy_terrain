@@ -7,7 +7,7 @@
 ![docs.rs](https://img.shields.io/docsrs/bevy_terrain)
 -->
 
-> ![Note]
+> ![NOTE]
 > This is a fork of the original project which maintains planar terrain rendering. It has not been merged yet due to 
 on-going developement by the orignal author, but aim's to maintain lockstep with the primary API.
 
